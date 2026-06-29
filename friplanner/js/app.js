@@ -242,7 +242,9 @@ function renderStats(days, all) {
 function renderSuggestions() {
   const { days, all } = getAllSuggestions();
   const afterPast = visibleSuggestions(all);
-  const afterBudget = budgetFilteredSuggestions(afterPast);
+  const afterBudget = budgetFilteredSuggestions(afterPast)
+    .slice()
+    .sort((a, b) => a.startDate - b.startDate); // chronological, from today forward
 
   renderStats(days, all);
 
@@ -368,34 +370,39 @@ function renderCalendar() {
   if (window.FX) window.FX.observeReveals(els.calendarGrid);
 }
 
-/* ---------- view routing ---------- */
+/* ---------- single-page navigation (scroll shortcuts) ---------- */
 
-function setView(view, { pushHistory = true } = {}) {
+function setView(view) {
   state.view = view;
-  document.querySelectorAll(".view").forEach((v) => {
-    v.classList.toggle("is-active", v.dataset.view === view);
-  });
-  document.querySelectorAll(".nav-btn").forEach((b) => {
-    b.classList.toggle("is-active", b.dataset.view === view);
-  });
-  document.querySelector(".app-main").classList.toggle("is-saved-active", view === "saved");
-  if (pushHistory) {
-    history.pushState({ view }, "", `#${view}`);
-  }
-  if (view === "calendar") renderCalendar();
-  if (view === "saved") renderSavedPlans();
-  if (window.FX) requestAnimationFrame(() => window.FX.observeReveals());
+  const section = document.getElementById(`view-${view}`);
+  if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// highlight the nav button for the section currently in view
+function initScrollSpy() {
+  const sections = document.querySelectorAll(".view");
+  const spy = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          const v = e.target.dataset.view;
+          document.querySelectorAll(".nav-btn").forEach((b) =>
+            b.classList.toggle("is-active", b.dataset.view === v)
+          );
+        }
+      });
+    },
+    { rootMargin: "-45% 0px -45% 0px" }
+  );
+  sections.forEach((s) => spy.observe(s));
 }
 
 function jumpToSuggestion(key) {
   const { all } = getAllSuggestions();
   const suggestion = all.find((s) => s.key === key);
   if (!suggestion) return;
-  setView("calendar");
-  requestAnimationFrame(() => {
-    const monthEl = $(`cal-month-${suggestion.startDate.getMonth()}`);
-    if (monthEl) monthEl.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+  const monthEl = $(`cal-month-${suggestion.startDate.getMonth()}`);
+  if (monthEl) monthEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /* ---------- saved plans ---------- */
@@ -462,7 +469,7 @@ function renderAll() {
   renderUnitHint();
   renderFixedPeriodResult();
   renderSuggestions();
-  if (state.view === "calendar") renderCalendar();
+  renderCalendar();
 }
 
 /* ---------- event binding ---------- */
@@ -562,6 +569,7 @@ function bindEvents() {
     });
     els.savePlanFeedback.textContent = `Plan “${name}” gemt.`;
     els.planNameInput.value = "";
+    renderSavedPlans();
   });
 
   els.savedPlansList.addEventListener("click", (e) => {
@@ -576,11 +584,6 @@ function bindEvents() {
 
   document.querySelectorAll(".nav-btn").forEach((btn) => {
     btn.addEventListener("click", () => setView(btn.dataset.view));
-  });
-
-  window.addEventListener("popstate", (e) => {
-    const view = (e.state && e.state.view) || "plan";
-    setView(view, { pushHistory: false });
   });
 }
 
@@ -607,14 +610,10 @@ function init() {
   cacheEls();
   bindEvents();
 
-  const initialView = (location.hash || "#plan").replace("#", "");
-  setView(["plan", "calendar", "saved"].includes(initialView) ? initialView : "plan", {
-    pushHistory: false,
-  });
-
+  // single page: render every section up front
   renderAll();
-  // desktop shows calendar side-by-side, so populate it up front
-  renderCalendar();
+  renderSavedPlans();
+  initScrollSpy();
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});

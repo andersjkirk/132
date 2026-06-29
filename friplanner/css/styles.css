@@ -83,8 +83,8 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- main ---------- */
 .app-main { flex: 1; width: 100%; max-width: 1180px; margin: -34px auto 0; padding: 0 18px 110px; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 18px; }
-.view { display: none; }
-.view.is-active { display: flex; flex-direction: column; gap: 18px; animation: fadeSlideUp 0.35s cubic-bezier(0.16,1,0.3,1); }
+.view { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 16px; }
+.section-title { margin: 8px 2px 0; font-size: 1.5rem; }
 
 /* ---------- cards ---------- */
 .card { position: relative; background: var(--glass); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid var(--glass-border); border-radius: var(--radius); box-shadow: var(--shadow-soft); padding: 22px; transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease; overflow: hidden; }
