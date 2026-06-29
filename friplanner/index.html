@@ -44,7 +44,7 @@
     <!-- PLAN VIEW -->
     <section class="view" id="view-plan" data-view="plan">
 
-      <div class="card settings-card">
+      <div class="card fx-reveal settings-card">
         <h2>Dine feriedage</h2>
 
         <div class="field-row">
@@ -84,7 +84,7 @@
         </div>
       </div>
 
-      <div class="card fixed-period-card">
+      <div class="card fx-reveal fixed-period-card">
         <h2>Fast periode <span class="card-subtitle">(fx makker eller venners ferie)</span></h2>
         <div class="field-row two-col">
           <div>
@@ -100,7 +100,7 @@
         <div id="fixed-period-result"></div>
       </div>
 
-      <div class="card suggestions-card">
+      <div class="card fx-reveal suggestions-card">
         <div class="suggestions-header">
           <h2>Forslag til bro-dage</h2>
           <label class="toggle-row">
@@ -112,18 +112,18 @@
         <div id="suggestions-list" class="suggestions-list"></div>
       </div>
 
-      <div class="card ad-slot" aria-label="Annonce">
+      <div class="card fx-reveal ad-slot" aria-label="Annonce">
         <span class="ad-label">Annonce</span>
         <div class="ad-placeholder">Annonceplads (ikke tilsluttet endnu)</div>
       </div>
 
-      <div class="card affiliate-card">
+      <div class="card fx-reveal affiliate-card">
         <span class="affiliate-label">Rejseinspiration</span>
         <p>Har du fundet din næste lange weekend? Sammenlign rejser og hoteller for perioden.</p>
         <button type="button" class="btn-secondary" disabled>Find rejser (kommer snart)</button>
       </div>
 
-      <div class="card save-plan-card">
+      <div class="card fx-reveal save-plan-card">
         <h2>Gem din plan</h2>
         <div class="field-row">
           <input type="text" id="plan-name-input" placeholder="Navngiv din plan, fx “Sommer 2026”" />
@@ -169,6 +169,7 @@
 
 </div>
 
+<script src="js/effects.js"></script>
 <script src="js/holidays.js"></script>
 <script src="js/bridge-logic.js"></script>
 <script src="js/storage.js"></script>

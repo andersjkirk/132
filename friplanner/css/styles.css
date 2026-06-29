@@ -74,6 +74,30 @@
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
 
+/* ---------- motion layer (effects.js) ---------- */
+
+.fx-reveal {
+  opacity: 0;
+  transform: translateY(26px) scale(0.985);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--fx-delay, 0ms),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--fx-delay, 0ms);
+  will-change: opacity, transform;
+}
+.fx-reveal.fx-in { opacity: 1; transform: none; }
+
+.fx-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transform: scale(0);
+  animation: fxRipple 0.6s ease-out forwards;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+@keyframes fxRipple {
+  to { transform: scale(2.4); opacity: 0; }
+}
+
 /* ---------- base ---------- */
 
 html, body {
@@ -125,7 +149,8 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 50%;
   filter: blur(60px);
   opacity: 0.55;
-  will-change: transform;
+  will-change: transform, translate;
+  translate: var(--px, 0) var(--py, 0);
 }
 .blob-1 { width: 46vw; height: 46vw; left: -8vw; top: -6vw; background: var(--grad-sunset); animation: floatBlob 18s ease-in-out infinite; }
 .blob-2 { width: 40vw; height: 40vw; right: -6vw; top: 8vw; background: var(--grad-ocean); animation: floatBlob 22s ease-in-out infinite reverse; }
@@ -212,13 +237,6 @@ button { font-family: inherit; cursor: pointer; }
   gap: 18px;
   animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.view.is-active .card { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-.view.is-active .card:nth-of-type(1) { animation-delay: 0.03s; }
-.view.is-active .card:nth-of-type(2) { animation-delay: 0.09s; }
-.view.is-active .card:nth-of-type(3) { animation-delay: 0.15s; }
-.view.is-active .card:nth-of-type(4) { animation-delay: 0.21s; }
-.view.is-active .card:nth-of-type(5) { animation-delay: 0.27s; }
-.view.is-active .card:nth-of-type(6) { animation-delay: 0.33s; }
 
 /* ---------- glass cards ---------- */
 
@@ -248,6 +266,35 @@ button { font-family: inherit; cursor: pointer; }
 .card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-pop);
+}
+
+@property --fx-ang {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--fx-ang), var(--coral), var(--sun), var(--teal), var(--grape), var(--pink), var(--coral));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.card:hover::before {
+  opacity: 0.85;
+  animation: fxSpinBorder 4s linear infinite;
+}
+@keyframes fxSpinBorder {
+  to { --fx-ang: 360deg; }
 }
 
 /* ---------- form fields ---------- */
@@ -299,6 +346,8 @@ input:focus, select:focus {
 .unit-btn.is-active { background: var(--grad-ocean); color: #fff; }
 
 .btn-primary, .btn-secondary, .btn-danger {
+  position: relative;
+  overflow: hidden;
   border-radius: 12px;
   border: 1px solid var(--line);
   padding: 11px 18px;
@@ -306,6 +355,18 @@ input:focus, select:focus {
   font-weight: 700;
   transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, filter 0.16s ease;
 }
+/* shine sweep on the primary button */
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0; left: -120%;
+  width: 60%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s ease;
+}
+.btn-primary:hover::before { left: 140%; }
+.nav-btn, .unit-btn { position: relative; overflow: hidden; }
 .btn-primary:hover:not(:disabled),
 .btn-secondary:hover:not(:disabled),
 .btn-danger:hover:not(:disabled) { transform: translateY(-2px); }
@@ -492,12 +553,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   background: var(--glass); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--glass-border); border-radius: var(--radius); box-shadow: var(--shadow-soft);
   padding: 16px;
-  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .cal-month:hover { transform: translateY(-3px); box-shadow: var(--shadow-pop); }
-.cal-month:nth-of-type(odd) { animation-delay: 0.03s; }
-.cal-month:nth-of-type(even) { animation-delay: 0.07s; }
 .cal-month h3 { font-size: 1.05rem; margin-bottom: 10px; }
 
 .cal-weekdays, .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -573,7 +631,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     gap: 24px;
     align-items: start;
   }
-  .view[data-view="plan"], .view[data-view="calendar"] { display: flex !important; }
+  .view[data-view="plan"], .view[data-view="calendar"] { display: flex !important; flex-direction: column; gap: 18px; }
   .view[data-view="calendar"] { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-right: 4px; }
   .view[data-view="saved"] { grid-column: 1 / -1; display: none; }
   .view[data-view="saved"].is-active { display: flex; }

@@ -117,22 +117,32 @@ function renderUnitHint() {
   }
 }
 
-function bumpStat(el, value) {
-  if (el.textContent === String(value)) return;
-  el.textContent = value;
+function bump(el) {
   el.classList.remove("is-bumped");
-  void el.offsetWidth; // restart transition
+  void el.offsetWidth;
   el.classList.add("is-bumped");
-  setTimeout(() => el.classList.remove("is-bumped"), 250);
+  setTimeout(() => el.classList.remove("is-bumped"), 260);
 }
 
 function renderStats(all) {
   const selectedList = all.filter((s) => state.selected.has(s.key));
   const used = selectedList.reduce((sum, s) => sum + s.vacationDays, 0);
   const off = selectedList.reduce((sum, s) => sum + s.daysOff, 0);
-  bumpStat(els.statUsed, used);
-  bumpStat(els.statOff, off);
-  els.statRatio.textContent = used > 0 ? (off / used).toFixed(1) : "–";
+  const ratio = used > 0 ? off / used : 0;
+
+  const fx = window.FX;
+  if (fx) {
+    if (els.statUsed.dataset.fxValue !== String(used)) bump(els.statUsed);
+    if (els.statOff.dataset.fxValue !== String(off)) bump(els.statOff);
+    fx.countUp(els.statUsed, used);
+    fx.countUp(els.statOff, off);
+    if (used > 0) fx.countUp(els.statRatio, ratio, { decimals: 1 });
+    else { els.statRatio.dataset.fxValue = "0"; els.statRatio.textContent = "–"; }
+  } else {
+    els.statUsed.textContent = used;
+    els.statOff.textContent = off;
+    els.statRatio.textContent = used > 0 ? ratio.toFixed(1) : "–";
+  }
 }
 
 function renderSuggestions() {
@@ -231,7 +241,7 @@ function renderCalendar() {
         return `<div class="${cls}"${title}>${day.date.getDate()}</div>`;
       });
       return `
-        <div class="cal-month" id="cal-month-${i}">
+        <div class="cal-month fx-reveal" id="cal-month-${i}">
           <h3>${monthNames[i]}</h3>
           <div class="cal-weekdays">
             <span>Ma</span><span>Ti</span><span>On</span><span>To</span><span>Fr</span><span>Lø</span><span>Sø</span>
@@ -241,6 +251,8 @@ function renderCalendar() {
       `;
     })
     .join("");
+
+  if (window.FX) window.FX.observeReveals(els.calendarGrid);
 }
 
 /* ---------- view routing ---------- */
@@ -259,6 +271,7 @@ function setView(view, { pushHistory = true } = {}) {
   }
   if (view === "calendar") renderCalendar();
   if (view === "saved") renderSavedPlans();
+  if (window.FX) requestAnimationFrame(() => window.FX.observeReveals());
 }
 
 function jumpToSuggestion(key) {
@@ -387,8 +400,19 @@ function bindEvents() {
   els.suggestionsList.addEventListener("change", (e) => {
     const key = e.target.dataset.selectKey;
     if (!key) return;
-    if (e.target.checked) state.selected.add(key);
-    else state.selected.delete(key);
+    if (e.target.checked) {
+      state.selected.add(key);
+      // celebrate a great-value pick
+      const { all } = getAllSuggestions();
+      const picked = all.find((s) => s.key === key);
+      if (window.FX && picked && picked.ratio >= 2) {
+        const rect = e.target.getBoundingClientRect();
+        window.FX.confetti(rect.left + rect.width / 2, rect.top + rect.height / 2,
+          picked.ratio >= 3 ? 110 : 70);
+      }
+    } else {
+      state.selected.delete(key);
+    }
     renderSuggestions();
   });
 
@@ -466,6 +490,8 @@ function init() {
   });
 
   renderAll();
+  // desktop shows calendar side-by-side, so populate it up front
+  renderCalendar();
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
