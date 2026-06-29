@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Friplanner — Find dine bedste fridage</title>
+<meta name="description" content="Friplanner hjælper dig med at finde de bedste dage at holde fri på, ved at udnytte weekender og helligdage som klippekort til lange fridage." />
+<meta name="theme-color" content="#FAF6EF" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">✂︎</span>
+      <span class="brand-name">Friplanner</span>
+    </div>
+    <p class="brand-tagline">Klip flest fridage ud af færrest feriedage</p>
+  </header>
+
+  <main class="app-main">
+
+    <!-- PLAN VIEW -->
+    <section class="view" id="view-plan" data-view="plan">
+
+      <div class="card settings-card">
+        <h2>Dine feriedage</h2>
+
+        <div class="field-row">
+          <label for="year-select">År</label>
+          <select id="year-select">
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <label for="vacation-input">Feriedage til rest</label>
+          <div class="input-with-unit">
+            <input type="number" id="vacation-input" min="0" max="60" value="25" />
+            <div class="unit-toggle" role="group" aria-label="Enhed">
+              <button type="button" class="unit-btn is-active" data-unit="days">dage</button>
+              <button type="button" class="unit-btn" data-unit="weeks">uger</button>
+            </div>
+          </div>
+        </div>
+        <p class="hint" id="unit-conversion-hint"></p>
+
+        <div class="budget-readout">
+          <div class="budget-stat">
+            <span class="budget-number" id="stat-used">0</span>
+            <span class="budget-label">feriedage brugt</span>
+          </div>
+          <div class="budget-stat">
+            <span class="budget-number" id="stat-off">0</span>
+            <span class="budget-label">fridage i alt</span>
+          </div>
+          <div class="budget-stat budget-stat-accent">
+            <span class="budget-number" id="stat-ratio">–</span>
+            <span class="budget-label">fridage pr. feriedag</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card fixed-period-card">
+        <h2>Fast periode <span class="card-subtitle">(fx makker eller venners ferie)</span></h2>
+        <div class="field-row two-col">
+          <div>
+            <label for="fixed-start">Fra</label>
+            <input type="date" id="fixed-start" />
+          </div>
+          <div>
+            <label for="fixed-end">Til</label>
+            <input type="date" id="fixed-end" />
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" id="clear-fixed-period">Ryd periode</button>
+        <div id="fixed-period-result"></div>
+      </div>
+
+      <div class="card suggestions-card">
+        <div class="suggestions-header">
+          <h2>Forslag til bro-dage</h2>
+          <label class="toggle-row">
+            <input type="checkbox" id="show-whole-year" />
+            <span>Vis hele året</span>
+          </label>
+        </div>
+        <p class="hint">Vælg de forslag du vil bruge — intet er valgt automatisk.</p>
+        <div id="suggestions-list" class="suggestions-list"></div>
+      </div>
+
+      <div class="card ad-slot" aria-label="Annonce">
+        <span class="ad-label">Annonce</span>
+        <div class="ad-placeholder">Annonceplads (ikke tilsluttet endnu)</div>
+      </div>
+
+      <div class="card affiliate-card">
+        <span class="affiliate-label">Rejseinspiration</span>
+        <p>Har du fundet din næste lange weekend? Sammenlign rejser og hoteller for perioden.</p>
+        <button type="button" class="btn-secondary" disabled>Find rejser (kommer snart)</button>
+      </div>
+
+      <div class="card save-plan-card">
+        <h2>Gem din plan</h2>
+        <div class="field-row">
+          <input type="text" id="plan-name-input" placeholder="Navngiv din plan, fx “Sommer 2026”" />
+          <button type="button" class="btn-primary" id="save-plan-btn">Gem</button>
+        </div>
+        <p class="hint" id="save-plan-feedback"></p>
+      </div>
+
+    </section>
+
+    <!-- CALENDAR VIEW -->
+    <section class="view" id="view-calendar" data-view="calendar">
+      <div class="calendar-legend">
+        <span class="legend-item"><i class="legend-dot dot-weekend"></i>Weekend</span>
+        <span class="legend-item"><i class="legend-dot dot-holiday"></i>Helligdag</span>
+        <span class="legend-item"><i class="legend-dot dot-selected"></i>Valgt feriedag</span>
+        <span class="legend-item"><i class="legend-dot dot-normal"></i>Arbejdsdag</span>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </section>
+
+    <!-- SAVED VIEW -->
+    <section class="view" id="view-saved" data-view="saved">
+      <div class="card">
+        <h2>Gemte planer</h2>
+        <div id="saved-plans-list" class="saved-plans-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="app-nav" aria-label="Navigation">
+    <button type="button" class="nav-btn is-active" data-view="plan">
+      <span class="nav-icon">📋</span><span>Plan</span>
+    </button>
+    <button type="button" class="nav-btn" data-view="calendar">
+      <span class="nav-icon">📅</span><span>Kalender</span>
+    </button>
+    <button type="button" class="nav-btn" data-view="saved">
+      <span class="nav-icon">💾</span><span>Gemt</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="js/holidays.js"></script>
+<script src="js/bridge-logic.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
