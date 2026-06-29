@@ -117,12 +117,21 @@ function renderUnitHint() {
   }
 }
 
+function bumpStat(el, value) {
+  if (el.textContent === String(value)) return;
+  el.textContent = value;
+  el.classList.remove("is-bumped");
+  void el.offsetWidth; // restart transition
+  el.classList.add("is-bumped");
+  setTimeout(() => el.classList.remove("is-bumped"), 250);
+}
+
 function renderStats(all) {
   const selectedList = all.filter((s) => state.selected.has(s.key));
   const used = selectedList.reduce((sum, s) => sum + s.vacationDays, 0);
   const off = selectedList.reduce((sum, s) => sum + s.daysOff, 0);
-  els.statUsed.textContent = used;
-  els.statOff.textContent = off;
+  bumpStat(els.statUsed, used);
+  bumpStat(els.statOff, off);
   els.statRatio.textContent = used > 0 ? (off / used).toFixed(1) : "–";
 }
 
