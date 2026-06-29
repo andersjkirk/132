@@ -35,8 +35,6 @@ function cacheEls() {
   els.planNameInput = $("plan-name-input");
   els.savePlanBtn = $("save-plan-btn");
   els.savePlanFeedback = $("save-plan-feedback");
-  els.destinationsList = $("destinations-list");
-  els.destinationsHint = $("destinations-hint");
 }
 
 /* ---------- destinations ---------- */
@@ -50,6 +48,8 @@ const DESTINATIONS = [
   { name: "Mallorca", query: "Mallorca, Spanien", city: "Palma de Mallorca", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
   { name: "København", query: "København, Danmark", city: null, emoji: "🚲", meta: "Hygge hjemme", grad: "linear-gradient(135deg,#67C7D8,#2A8FB0)" },
 ];
+// shown inside each selected suggestion
+const FEATURED_DESTINATIONS = [DESTINATIONS[0], DESTINATIONS[2], DESTINATIONS[3]];
 
 function selectedPeriod() {
   const { days, all } = getAllSuggestions();
@@ -94,28 +94,6 @@ function flightsUrl(city, period) {
   return `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`;
 }
 
-function renderDestinations() {
-  const period = selectedPeriod();
-  if (els.destinationsHint) {
-    els.destinationsHint.textContent = period
-      ? `Rejser i din valgte periode: ${formatDate(period.start)} – ${formatDate(period.end)}. Tryk for at se priser.`
-      : "Vælg et forslag ovenfor — så finder vi rejser præcis i de datoer.";
-  }
-  els.destinationsList.innerHTML = DESTINATIONS.map((d) => {
-    const hotel = `<a href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
-    const flight = d.city
-      ? `<a href="${flightsUrl(d.city, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
-      : "";
-    return `
-      <div class="destination-card" style="background-image:${d.grad}">
-        <span class="destination-emoji">${d.emoji}</span>
-        <span class="destination-name">${d.name}</span>
-        <span class="destination-meta">${d.meta}</span>
-        <div class="destination-actions">${hotel}${flight}</div>
-      </div>
-    `;
-  }).join("");
-}
 
 /* ---------- suggestion key helpers ---------- */
 
@@ -278,24 +256,50 @@ function renderSuggestions() {
       const checked = state.selected.has(s.key) ? "checked" : "";
       const tag =
         s.source === "fixed" ? "Fast periode" : s.source === "extension" ? "Forlængelse" : "Bro-dage";
+      const trips = state.selected.has(s.key) ? renderTrips(s) : "";
       return `
         <article class="suggestion-card" data-key="${s.key}">
-          <label class="suggestion-checkbox">
-            <input type="checkbox" data-select-key="${s.key}" ${checked} />
-          </label>
-          <div class="suggestion-body" data-jump-key="${s.key}">
-            <div class="suggestion-tag">${tag}</div>
-            <div class="suggestion-dates">${formatDate(s.startDate)} – ${formatDate(s.endDate)}</div>
-            <div class="suggestion-metrics">
-              <span><strong>${s.daysOff}</strong> fridage</span>
-              <span><strong>${s.vacationDays}</strong> feriedage</span>
-              <span class="ratio-pill">${s.ratio.toFixed(1)}×</span>
+          <div class="suggestion-top">
+            <label class="suggestion-checkbox">
+              <input type="checkbox" data-select-key="${s.key}" ${checked} />
+            </label>
+            <div class="suggestion-body" data-jump-key="${s.key}">
+              <div class="suggestion-tag">${tag}</div>
+              <div class="suggestion-dates">${formatDate(s.startDate)} – ${formatDate(s.endDate)}</div>
+              <div class="suggestion-metrics">
+                <span><strong>${s.daysOff}</strong> fridage</span>
+                <span><strong>${s.vacationDays}</strong> feriedage</span>
+                <span class="ratio-pill">${s.ratio.toFixed(1)}×</span>
+              </div>
             </div>
           </div>
+          ${trips}
         </article>
       `;
     })
     .join("");
+}
+
+/* Travel options shown inside a selected suggestion, with hotel + flight
+   links pre-filled with that suggestion's dates. */
+function renderTrips(s) {
+  const period = { start: s.startDate, end: s.endDate };
+  const rows = FEATURED_DESTINATIONS.map((d) => {
+    const hotel = `<a class="trip-hotel" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
+    const fly = d.city
+      ? `<a class="trip-fly" href="${flightsUrl(d.city, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
+      : "";
+    return `
+      <div class="trip">
+        <div class="trip-ico" style="background:${d.grad}">${d.emoji}</div>
+        <div class="trip-who">
+          <div class="trip-name">${d.name}</div>
+          <div class="trip-meta">Fly + hotel i dine datoer — se priser</div>
+        </div>
+        <div class="trip-actions">${hotel}${fly}</div>
+      </div>`;
+  }).join("");
+  return `<div class="trips"><div class="trips-title">✈️ Rejs i denne periode</div>${rows}</div>`;
 }
 
 function renderFixedPeriodResult() {
@@ -458,7 +462,6 @@ function renderAll() {
   renderUnitHint();
   renderFixedPeriodResult();
   renderSuggestions();
-  renderDestinations();
   if (state.view === "calendar") renderCalendar();
 }
 
@@ -518,7 +521,6 @@ function bindEvents() {
       state.selected.delete(key);
     }
     renderSuggestions();
-    renderDestinations();
     renderCalendar(); // reflect picked bridge days on the calendar immediately
   });
 
@@ -534,7 +536,6 @@ function bindEvents() {
     }
     renderCalendar();
     renderSuggestions();
-    renderDestinations();
   });
 
   els.suggestionsList.addEventListener("click", (e) => {
