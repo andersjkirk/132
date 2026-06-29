@@ -41,13 +41,14 @@ function cacheEls() {
 
 /* ---------- destinations ---------- */
 
+const FLIGHT_ORIGIN = "Copenhagen";
 const DESTINATIONS = [
-  { name: "Barcelona", query: "Barcelona, Spanien", emoji: "🏖️", meta: "Sol, strand & tapas", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
-  { name: "Rom", query: "Rom, Italien", emoji: "🏛️", meta: "Historie & is", grad: "linear-gradient(135deg,#F6A56B,#C9784B)" },
-  { name: "Alperne", query: "Alperne, Østrig", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#7FB8E8,#3E6FB0)" },
-  { name: "Lissabon", query: "Lissabon, Portugal", emoji: "🚋", meta: "Pastel & kyst", grad: "linear-gradient(135deg,#FFD37A,#F58C5A)" },
-  { name: "København", query: "København, Danmark", emoji: "🚲", meta: "Hygge hjemme", grad: "linear-gradient(135deg,#67C7D8,#2A8FB0)" },
-  { name: "Mallorca", query: "Mallorca, Spanien", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
+  { name: "Barcelona", query: "Barcelona, Spanien", city: "Barcelona", emoji: "🏖️", meta: "Sol, strand & tapas", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
+  { name: "Rom", query: "Rom, Italien", city: "Rome", emoji: "🏛️", meta: "Historie & is", grad: "linear-gradient(135deg,#F6A56B,#C9784B)" },
+  { name: "Alperne", query: "Innsbruck, Østrig", city: "Innsbruck", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#7FB8E8,#3E6FB0)" },
+  { name: "Lissabon", query: "Lissabon, Portugal", city: "Lisbon", emoji: "🚋", meta: "Pastel & kyst", grad: "linear-gradient(135deg,#FFD37A,#F58C5A)" },
+  { name: "Mallorca", query: "Mallorca, Spanien", city: "Palma de Mallorca", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
+  { name: "København", query: "København, Danmark", city: null, emoji: "🚲", meta: "Hygge hjemme", grad: "linear-gradient(135deg,#67C7D8,#2A8FB0)" },
 ];
 
 function selectedPeriod() {
@@ -83,22 +84,37 @@ function bookingUrl(query, period) {
   return url;
 }
 
+function flightsUrl(city, period) {
+  let q = `flights from ${FLIGHT_ORIGIN} to ${city}`;
+  if (period) {
+    const back = new Date(period.end);
+    back.setDate(back.getDate() + 1);
+    q += ` on ${isoDate(period.start)} returning ${isoDate(back)}`;
+  }
+  return `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`;
+}
+
 function renderDestinations() {
   const period = selectedPeriod();
   if (els.destinationsHint) {
     els.destinationsHint.textContent = period
-      ? `Rejser i din valgte periode: ${formatDate(period.start)} – ${formatDate(period.end)}. Tryk og book.`
+      ? `Rejser i din valgte periode: ${formatDate(period.start)} – ${formatDate(period.end)}. Tryk for at se priser.`
       : "Vælg et forslag ovenfor — så finder vi rejser præcis i de datoer.";
   }
-  els.destinationsList.innerHTML = DESTINATIONS.map((d) => `
-    <a class="destination-card" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener"
-       style="background-image:${d.grad}">
-      <span class="destination-emoji">${d.emoji}</span>
-      <span class="destination-cta">${period ? "Book" : "Se rejser"}</span>
-      <span class="destination-name">${d.name}</span>
-      <span class="destination-meta">${d.meta}</span>
-    </a>
-  `).join("");
+  els.destinationsList.innerHTML = DESTINATIONS.map((d) => {
+    const hotel = `<a href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
+    const flight = d.city
+      ? `<a href="${flightsUrl(d.city, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
+      : "";
+    return `
+      <div class="destination-card" style="background-image:${d.grad}">
+        <span class="destination-emoji">${d.emoji}</span>
+        <span class="destination-name">${d.name}</span>
+        <span class="destination-meta">${d.meta}</span>
+        <div class="destination-actions">${hotel}${flight}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 /* ---------- suggestion key helpers ---------- */
