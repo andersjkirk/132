@@ -50,8 +50,8 @@
   /* ---------- mouse / device parallax on aurora ---------- */
   function initParallax() {
     if (reduceMotion) return;
-    const blobs = document.querySelectorAll(".blob");
-    if (!blobs.length) return;
+    const sun = document.querySelector(".sun");
+    if (!sun) return;
     let tx = 0, ty = 0, cx = 0, cy = 0;
     window.addEventListener("pointermove", (e) => {
       tx = (e.clientX / window.innerWidth - 0.5) * 2;
@@ -60,18 +60,15 @@
     function loop() {
       cx += (tx - cx) * 0.05;
       cy += (ty - cy) * 0.05;
-      blobs.forEach((b, i) => {
-        const depth = (i + 1) * 14;
-        b.style.setProperty("--px", `${cx * depth}px`);
-        b.style.setProperty("--py", `${cy * depth}px`);
-      });
+      sun.style.setProperty("--px", `${cx * 22}px`);
+      sun.style.setProperty("--py", `${cy * 22}px`);
       requestAnimationFrame(loop);
     }
     loop();
   }
 
   /* ---------- confetti burst ---------- */
-  const COLORS = ["#FF6B6B", "#FF9F45", "#FFD23F", "#1FBFB8", "#3FA9F5", "#8B5CF6", "#FF5DA2"];
+  const COLORS = ["#2A9CC0", "#1E7E9E", "#FFC65C", "#FF7E5F", "#FFE0A3", "#7FD4E8"];
   function confetti(x, y, amount = 70) {
     if (reduceMotion) return;
     let canvas = document.getElementById("fx-confetti");

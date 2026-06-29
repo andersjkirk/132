@@ -34,6 +34,59 @@ function cacheEls() {
   els.planNameInput = $("plan-name-input");
   els.savePlanBtn = $("save-plan-btn");
   els.savePlanFeedback = $("save-plan-feedback");
+  els.destinationsList = $("destinations-list");
+  els.destinationsHint = $("destinations-hint");
+}
+
+/* ---------- destinations ---------- */
+
+const DESTINATIONS = [
+  { name: "Barcelona", query: "Barcelona, Spanien", emoji: "🏖️", meta: "Sol, strand & tapas", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
+  { name: "Rom", query: "Rom, Italien", emoji: "🏛️", meta: "Historie & is", grad: "linear-gradient(135deg,#F6A56B,#C9784B)" },
+  { name: "Alperne", query: "Alperne, Østrig", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#7FB8E8,#3E6FB0)" },
+  { name: "Lissabon", query: "Lissabon, Portugal", emoji: "🚋", meta: "Pastel & kyst", grad: "linear-gradient(135deg,#FFD37A,#F58C5A)" },
+  { name: "København", query: "København, Danmark", emoji: "🚲", meta: "Hygge hjemme", grad: "linear-gradient(135deg,#67C7D8,#2A8FB0)" },
+  { name: "Mallorca", query: "Mallorca, Spanien", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
+];
+
+function selectedPeriod() {
+  const { all } = getAllSuggestions();
+  const selected = all.filter((s) => state.selected.has(s.key));
+  if (!selected.length) return null;
+  selected.sort((a, b) => a.startDate - b.startDate);
+  return { start: selected[0].startDate, end: selected[selected.length - 1].endDate };
+}
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function bookingUrl(query, period) {
+  let url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(query)}`;
+  if (period) {
+    const checkout = new Date(period.end);
+    checkout.setDate(checkout.getDate() + 1); // night after the last day off
+    url += `&checkin=${isoDate(period.start)}&checkout=${isoDate(checkout)}`;
+  }
+  return url;
+}
+
+function renderDestinations() {
+  const period = selectedPeriod();
+  if (els.destinationsHint) {
+    els.destinationsHint.textContent = period
+      ? `Rejser i din valgte periode: ${formatDate(period.start)} – ${formatDate(period.end)}. Tryk og book.`
+      : "Vælg et forslag ovenfor — så finder vi rejser præcis i de datoer.";
+  }
+  els.destinationsList.innerHTML = DESTINATIONS.map((d) => `
+    <a class="destination-card" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener"
+       style="background-image:${d.grad}">
+      <span class="destination-emoji">${d.emoji}</span>
+      <span class="destination-cta">${period ? "Book" : "Se rejser"}</span>
+      <span class="destination-name">${d.name}</span>
+      <span class="destination-meta">${d.meta}</span>
+    </a>
+  `).join("");
 }
 
 /* ---------- suggestion key helpers ---------- */
@@ -348,6 +401,7 @@ function renderAll() {
   renderUnitHint();
   renderFixedPeriodResult();
   renderSuggestions();
+  renderDestinations();
   if (state.view === "calendar") renderCalendar();
 }
 
@@ -414,6 +468,7 @@ function bindEvents() {
       state.selected.delete(key);
     }
     renderSuggestions();
+    renderDestinations();
   });
 
   els.suggestionsList.addEventListener("click", (e) => {

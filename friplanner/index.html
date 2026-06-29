@@ -16,11 +16,13 @@
 </head>
 <body>
 
-<div class="bg-aurora" aria-hidden="true">
-  <span class="blob blob-1"></span>
-  <span class="blob blob-2"></span>
-  <span class="blob blob-3"></span>
-  <span class="blob blob-4"></span>
+<div class="bg-sky" aria-hidden="true">
+  <span class="sun"></span>
+  <span class="cloud cloud-1"></span>
+  <span class="cloud cloud-2"></span>
+  <span class="cloud cloud-3"></span>
+  <span class="cloud cloud-4"></span>
+  <span class="cloud cloud-5"></span>
   <span class="bg-grain"></span>
 </div>
 
@@ -117,10 +119,12 @@
         <div class="ad-placeholder">Annonceplads (ikke tilsluttet endnu)</div>
       </div>
 
-      <div class="card fx-reveal affiliate-card">
-        <span class="affiliate-label">Rejseinspiration</span>
-        <p>Har du fundet din næste lange weekend? Sammenlign rejser og hoteller for perioden.</p>
-        <button type="button" class="btn-secondary" disabled>Find rejser (kommer snart)</button>
+      <div class="card fx-reveal destinations-card">
+        <div class="suggestions-header">
+          <h2>Rejs i din friperiode</h2>
+        </div>
+        <p class="hint" id="destinations-hint">Vælg et forslag ovenfor — så finder vi rejser præcis i de datoer.</p>
+        <div id="destinations-list" class="destinations-list"></div>
       </div>
 
       <div class="card fx-reveal save-plan-card">
