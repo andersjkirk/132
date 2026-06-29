@@ -20,6 +20,7 @@ function savePlan(plan) {
     vacationDays: plan.vacationDays,
     fixedPeriod: plan.fixedPeriod || null,
     selectedKeys: plan.selectedKeys || [],
+    manualDays: plan.manualDays || [],
     savedAt: new Date().toISOString(),
   };
   const existingIndex = plans.findIndex((p) => p.id === record.id);

@@ -143,15 +143,9 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 700;
   color: var(--sea-deep);
 }
-.brand-tagline { margin: 8px 0 0; color: var(--ink-soft); font-size: 1rem; font-weight: 500; }
-.brand-pills { margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.pill {
-  font-size: 0.78rem; font-weight: 600; padding: 6px 13px; border-radius: 100px; color: #fff;
-  box-shadow: var(--shadow-soft); animation: bob 4.5s ease-in-out infinite;
-}
-.pill-sun { background: linear-gradient(135deg, var(--sun), var(--coral)); }
-.pill-snow { background: linear-gradient(135deg, var(--sea), var(--sea-deep)); animation-delay: 0.6s; }
-.pill-leaf { background: linear-gradient(135deg, var(--coral), #E8654A); animation-delay: 1.2s; }
+.brand-headline { margin: 14px 0 4px; font-size: 1.45rem; line-height: 1.18; color: var(--ink); }
+.brand-tagline { margin: 0; color: var(--ink-soft); font-size: 1rem; font-weight: 500; }
+.calendar-help { margin: 10px 2px 0; }
 
 .app-main {
   flex: 1; padding: 8px 16px 96px;
@@ -345,6 +339,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
 }
 .cal-day:not(.cal-blank):hover { transform: scale(1.2); box-shadow: 0 6px 14px -3px rgba(40, 70, 95, 0.35); z-index: 1; position: relative; }
+.cal-day-normal { cursor: pointer; }
+.cal-day-normal:hover { background: #fff; box-shadow: inset 0 0 0 2px var(--sea); }
+.cal-day-selected { cursor: pointer; }
 .cal-blank { background: transparent; }
 .cal-day-weekend { background: var(--accent-weekend-soft); color: var(--sea-deep); }
 .cal-day-holiday { background: linear-gradient(135deg, var(--sun), var(--coral)); color: #fff; font-weight: 700; box-shadow: 0 4px 10px -4px rgba(255, 126, 95, 0.55); }

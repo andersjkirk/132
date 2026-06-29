@@ -6,6 +6,7 @@ const state = {
   unit: "days", // "days" | "weeks"
   fixedPeriod: null, // { start: Date, end: Date }
   selected: new Set(), // suggestion keys
+  manualDays: new Set(), // user-picked individual vacation day keys
   showWholeYear: false,
   view: "plan",
 };
@@ -50,11 +51,22 @@ const DESTINATIONS = [
 ];
 
 function selectedPeriod() {
-  const { all } = getAllSuggestions();
-  const selected = all.filter((s) => state.selected.has(s.key));
-  if (!selected.length) return null;
-  selected.sort((a, b) => a.startDate - b.startDate);
-  return { start: selected[0].startDate, end: selected[selected.length - 1].endDate };
+  const { days, all } = getAllSuggestions();
+  const usedKeys = computeUsedKeys(days, all);
+  if (!usedKeys.size) return null;
+  // expand each used day across adjacent free days, then take overall span
+  const usedDays = days.filter((d) => usedKeys.has(d.key));
+  let start = usedDays[0].date, end = usedDays[0].date;
+  for (const d of usedDays) {
+    if (d.date < start) start = d.date;
+    if (d.date > end) end = d.date;
+  }
+  // pull in neighbouring weekend/holiday days so the trip covers the full break
+  const idx = (date) => days.findIndex((x) => x.key === Holidays.dateKey(date));
+  let si = idx(start), ei = idx(end);
+  while (si > 0 && days[si - 1].free) si--;
+  while (ei < days.length - 1 && days[ei + 1].free) ei++;
+  return { start: days[si].date, end: days[ei].date };
 }
 
 function isoDate(d) {
@@ -177,10 +189,45 @@ function bump(el) {
   setTimeout(() => el.classList.remove("is-bumped"), 260);
 }
 
-function renderStats(all) {
-  const selectedList = all.filter((s) => state.selected.has(s.key));
-  const used = selectedList.reduce((sum, s) => sum + s.vacationDays, 0);
-  const off = selectedList.reduce((sum, s) => sum + s.daysOff, 0);
+/* Unified set of spent vacation days = workdays inside selected suggestions
+   plus the user's manually clicked days. */
+function computeUsedKeys(days, all) {
+  const usedKeys = new Set();
+  for (const s of all) {
+    if (!state.selected.has(s.key)) continue;
+    for (let i = s.startIndex; i <= s.endIndex; i++) {
+      if (!days[i].free) usedKeys.add(days[i].key);
+    }
+  }
+  const freeKeys = new Set(days.filter((d) => d.free).map((d) => d.key));
+  for (const key of state.manualDays) {
+    if (!freeKeys.has(key)) usedKeys.add(key);
+  }
+  return usedKeys;
+}
+
+/* Total consecutive days off: every stretch of free/used days that contains
+   at least one spent vacation day counts in full. */
+function computeDaysOff(days, usedKeys) {
+  const isOff = (d) => d.free || usedKeys.has(d.key);
+  let total = 0, i = 0;
+  while (i < days.length) {
+    if (!isOff(days[i])) { i++; continue; }
+    let j = i, hasUsed = false;
+    while (j < days.length && isOff(days[j])) {
+      if (usedKeys.has(days[j].key)) hasUsed = true;
+      j++;
+    }
+    if (hasUsed) total += j - i;
+    i = j;
+  }
+  return total;
+}
+
+function renderStats(days, all) {
+  const usedKeys = computeUsedKeys(days, all);
+  const used = usedKeys.size;
+  const off = computeDaysOff(days, usedKeys);
   const ratio = used > 0 ? off / used : 0;
 
   const fx = window.FX;
@@ -199,11 +246,11 @@ function renderStats(all) {
 }
 
 function renderSuggestions() {
-  const { all } = getAllSuggestions();
+  const { days, all } = getAllSuggestions();
   const afterPast = visibleSuggestions(all);
   const afterBudget = budgetFilteredSuggestions(afterPast);
 
-  renderStats(all);
+  renderStats(days, all);
 
   if (afterBudget.length === 0) {
     els.suggestionsList.innerHTML = `<p class="hint">Ingen forslag matcher lige nu. Prøv at vise hele året, eller justér dine feriedage.</p>`;
@@ -262,14 +309,7 @@ function renderFixedPeriodResult() {
 
 function renderCalendar() {
   const { days, all } = getAllSuggestions();
-  const selectedRanges = all.filter((s) => state.selected.has(s.key));
-
-  const vacationDayKeys = new Set();
-  for (const s of selectedRanges) {
-    for (let i = s.startIndex; i <= s.endIndex; i++) {
-      if (!days[i].free) vacationDayKeys.add(days[i].key);
-    }
-  }
+  const vacationDayKeys = computeUsedKeys(days, all);
 
   const months = [];
   for (let m = 0; m < 12; m++) months.push([]);
@@ -291,7 +331,7 @@ function renderCalendar() {
         else if (day.isWeekend) cls += " cal-day-weekend";
         else cls += " cal-day-normal";
         const title = day.holidayName ? ` title="${day.holidayName}"` : "";
-        return `<div class="${cls}"${title}>${day.date.getDate()}</div>`;
+        return `<div class="${cls}" data-day-key="${day.key}" data-free="${day.free ? 1 : 0}"${title}>${day.date.getDate()}</div>`;
       });
       return `
         <div class="cal-month fx-reveal" id="cal-month-${i}">
@@ -381,6 +421,7 @@ function loadPlan(id) {
     ? { start: new Date(plan.fixedPeriod.start), end: new Date(plan.fixedPeriod.end) }
     : null;
   state.selected = new Set(plan.selectedKeys);
+  state.manualDays = new Set(plan.manualDays || []);
 
   els.yearSelect.value = String(state.year);
   els.vacationInput.value = state.vacationDays;
@@ -411,6 +452,7 @@ function bindEvents() {
   els.yearSelect.addEventListener("change", () => {
     state.year = Number(els.yearSelect.value);
     state.selected = new Set();
+    state.manualDays = new Set();
     renderAll();
   });
 
@@ -469,6 +511,22 @@ function bindEvents() {
     }
     renderSuggestions();
     renderDestinations();
+    renderCalendar(); // reflect picked bridge days on the calendar immediately
+  });
+
+  // click a calendar day to pick/unpick your own vacation day
+  els.calendarGrid.addEventListener("click", (e) => {
+    const cell = e.target.closest("[data-day-key]");
+    if (!cell || cell.dataset.free === "1") return; // only workdays are pickable
+    const key = cell.dataset.dayKey;
+    if (state.manualDays.has(key)) {
+      state.manualDays.delete(key);
+    } else {
+      state.manualDays.add(key);
+    }
+    renderCalendar();
+    renderSuggestions();
+    renderDestinations();
   });
 
   els.suggestionsList.addEventListener("click", (e) => {
@@ -491,6 +549,7 @@ function bindEvents() {
         ? { start: state.fixedPeriod.start.toISOString(), end: state.fixedPeriod.end.toISOString() }
         : null,
       selectedKeys: Array.from(state.selected),
+      manualDays: Array.from(state.manualDays),
     });
     els.savePlanFeedback.textContent = `Plan “${name}” gemt.`;
     els.planNameInput.value = "";
