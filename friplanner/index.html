@@ -5,22 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Friplanner — Find dine bedste fridage</title>
 <meta name="description" content="Friplanner hjælper dig med at finde de bedste dage at holde fri på, ved at udnytte weekender og helligdage som klippekort til lange fridage." />
-<meta name="theme-color" content="#FAF6EF" />
+<meta name="theme-color" content="#FFF8F0" />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="icons/icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+
+<div class="bg-aurora" aria-hidden="true">
+  <span class="blob blob-1"></span>
+  <span class="blob blob-2"></span>
+  <span class="blob blob-3"></span>
+  <span class="blob blob-4"></span>
+  <span class="bg-grain"></span>
+</div>
 
 <div class="app-shell">
 
   <header class="app-header">
     <div class="brand">
-      <span class="brand-mark">✂︎</span>
+      <span class="brand-mark">☀︎</span>
       <span class="brand-name">Friplanner</span>
     </div>
     <p class="brand-tagline">Klip flest fridage ud af færrest feriedage</p>
+    <div class="brand-pills" aria-hidden="true">
+      <span class="pill pill-sun">🏖️ Sommerferie</span>
+      <span class="pill pill-snow">⛷️ Vinterbro</span>
+      <span class="pill pill-leaf">🍂 Lange weekender</span>
+    </div>
   </header>
 
   <main class="app-main">
