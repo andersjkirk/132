@@ -18,13 +18,15 @@
   --sea-deep: #1E7E9E;
   --sand: #F4E6CE;
   --coral: #FF7E5F;
+  --green: #2FAE6A;
+  --green-deep: #1E8B52;
 
   --accent-holiday: #FF7E5F;       /* warm coral for helligdage */
   --accent-holiday-soft: #FFE2D8;
   --accent-weekend: #2A9CC0;       /* sea for weekends */
   --accent-weekend-soft: #D6EEF5;
-  --accent-selected: #1E7E9E;      /* deep sea for valgt */
-  --accent-selected-soft: #CDE9F1;
+  --accent-selected: #1E8B52;      /* green for valgt feriedag */
+  --accent-selected-soft: #D2F0DF;
 
   --radius: 20px;
   --shadow-soft: 0 10px 30px -14px rgba(40, 70, 95, 0.3);
@@ -251,10 +253,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .suggestion-card:hover { transform: translateX(4px); box-shadow: 0 8px 22px -8px rgba(40, 70, 95, 0.3); }
 .suggestion-card:hover::before { opacity: 1; }
 .suggestion-card:has(input:checked) {
-  background: linear-gradient(135deg, rgba(30, 126, 158, 0.12), rgba(42, 156, 192, 0.1));
-  border-color: rgba(30, 126, 158, 0.5); animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: linear-gradient(135deg, rgba(47, 174, 106, 0.14), rgba(47, 174, 106, 0.08));
+  border-color: rgba(30, 139, 82, 0.5); animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.suggestion-card:has(input:checked)::before { opacity: 1; }
+.suggestion-card:has(input:checked)::before { opacity: 1; background: linear-gradient(180deg, var(--green), var(--green-deep)); }
 .suggestion-checkbox input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--accent-selected); cursor: pointer; transition: transform 0.15s ease; }
 .suggestion-checkbox input:active { transform: scale(0.85); }
 .suggestion-body { flex: 1; cursor: pointer; }
@@ -345,7 +347,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .cal-blank { background: transparent; }
 .cal-day-weekend { background: var(--accent-weekend-soft); color: var(--sea-deep); }
 .cal-day-holiday { background: linear-gradient(135deg, var(--sun), var(--coral)); color: #fff; font-weight: 700; box-shadow: 0 4px 10px -4px rgba(255, 126, 95, 0.55); }
-.cal-day-selected { background: linear-gradient(135deg, var(--sea), var(--sea-deep)); color: #fff; font-weight: 700; box-shadow: 0 4px 12px -3px rgba(30, 126, 158, 0.55); animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+.cal-day-selected { background: linear-gradient(135deg, var(--green), var(--green-deep)); color: #fff; font-weight: 700; box-shadow: 0 4px 12px -3px rgba(30, 139, 82, 0.5); animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
 
 /* ---------- nav ---------- */
 .app-nav {

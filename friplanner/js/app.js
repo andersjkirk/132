@@ -498,14 +498,6 @@ function bindEvents() {
     if (!key) return;
     if (e.target.checked) {
       state.selected.add(key);
-      // celebrate a great-value pick
-      const { all } = getAllSuggestions();
-      const picked = all.find((s) => s.key === key);
-      if (window.FX && picked && picked.ratio >= 2) {
-        const rect = e.target.getBoundingClientRect();
-        window.FX.confetti(rect.left + rect.width / 2, rect.top + rect.height / 2,
-          picked.ratio >= 3 ? 110 : 70);
-      }
     } else {
       state.selected.delete(key);
     }
