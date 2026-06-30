@@ -85,6 +85,50 @@ function pickDestinations(month) {
   return rot(pool, month).slice(0, 3).map((k) => PLACES[k]);
 }
 
+/* ---------- live prices via our Cloudflare Worker ---------- */
+
+const PRICE_API = "https://friplanner-priser.andersjkirk.workers.dev/";
+const FLIGHT_ORIGIN_AIRPORT = "BLL"; // Billund
+const HOTEL_LOC = {
+  barcelona: "Barcelona", nice: "Nice", split: "Split", mallorca: "Palma de Mallorca",
+  athens: "Athens", lisbon: "Lisbon", seville: "Seville", malta: "Malta", rome: "Rome",
+  cyprus: "Paphos", catania: "Catania", tenerife: "Tenerife", madeira: "Funchal",
+  malaga: "Malaga", alps: "Innsbruck",
+};
+Object.keys(PLACES).forEach((k) => { PLACES[k].hotelLoc = HOTEL_LOC[k]; });
+
+const priceCache = new Map();
+function formatKr(n) { return `${Math.round(n).toLocaleString("da-DK")} kr`; }
+
+async function fetchTripPrice(dest, loc, checkIn, checkOut) {
+  const key = `${dest}|${loc}|${checkIn}|${checkOut}`;
+  if (priceCache.has(key)) return priceCache.get(key);
+  const url = `${PRICE_API}?origin=${FLIGHT_ORIGIN_AIRPORT}&dest=${dest}` +
+    `&loc=${encodeURIComponent(loc)}&checkIn=${checkIn}&checkOut=${checkOut}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    priceCache.set(key, data);
+    return data;
+  } catch (e) {
+    priceCache.set(key, null);
+    return null;
+  }
+}
+
+function hydrateTripPrices() {
+  document.querySelectorAll(".trip-price[data-dest]").forEach(async (el) => {
+    if (el.dataset.done) return;
+    el.dataset.done = "1";
+    const d = await fetchTripPrice(el.dataset.dest, el.dataset.loc, el.dataset.cin, el.dataset.cout);
+    if (!d || (!d.flight && !d.hotel)) { el.remove(); return; }
+    const parts = [];
+    if (d.flight) parts.push(`✈️ fra ${formatKr(d.flight)}`);
+    if (d.hotel) parts.push(`🏨 fra ${formatKr(d.hotel)}`);
+    el.textContent = parts.join("  ·  ");
+  });
+}
+
 function selectedPeriod() {
   const { days, all } = getAllSuggestions();
   const usedKeys = computeUsedKeys(days, all);
@@ -345,22 +389,32 @@ function renderSuggestions() {
       `;
     })
     .join("");
+
+  hydrateTripPrices(); // fetch live flight + hotel prices via the worker
 }
 
 /* Travel options shown inside a selected suggestion, with hotel + flight
    links pre-filled with that suggestion's dates. */
 function renderTrips(s) {
   const period = { start: s.startDate, end: s.endDate };
+  const checkIn = isoDate(period.start);
+  const back = new Date(period.end);
+  back.setDate(back.getDate() + 1);
+  const checkOut = isoDate(back);
   const cards = pickDestinations(s.startDate.getMonth()).map((d) => {
     const fly = d.iata
       ? `<a class="trip-fly" href="${momondoFlightUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
       : "";
     const hotel = `<a class="trip-hotel" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
+    const priceEl = d.iata
+      ? `<div class="trip-price" data-dest="${d.iata}" data-loc="${d.hotelLoc}" data-cin="${checkIn}" data-cout="${checkOut}">Henter priser…</div>`
+      : "";
     return `
       <div class="trip">
         <div class="trip-ico" style="background:${d.grad}">${d.emoji}</div>
         <div class="trip-name">${d.name}</div>
         <div class="trip-meta">${d.meta}</div>
+        ${priceEl}
         <div class="trip-actions">${fly}${hotel}</div>
       </div>`;
   }).join("");
