@@ -10,6 +10,7 @@ const state = {
   showWholeYear: false,
   optionalDays: new Set(), // enabled "kan-fridage" ids (may1, grundlov, ...)
   extraWeek: false, // 6. ferieuge → +5 vacation days
+  originAirport: "CPH", // departure airport, refined from the visitor's location
   view: "plan",
 };
 
@@ -50,8 +51,6 @@ function cacheEls() {
 
 /* ---------- destinations ---------- */
 
-const FLIGHT_ORIGIN_IATA = "CPH"; // København
-
 /* Catalogue of European destinations with the months their weather is good.
    `iata` is the destination airport used for Momondo flight links. */
 const PLACES = {
@@ -85,26 +84,25 @@ const SEASON_POOLS = {
 const WINTER_EXOTIC = ["phuket", "dubai", "hurghada", "capeverde"]; // long-haul sun
 const WINTER_NEAR = ["tenerife", "madeira", "malaga", "cyprus"];    // close & warm
 
-/* Pick three good-weather destinations for the month a break falls in. Winter
-   shows one long-haul exotic + one close warm spot + skiing in the Alps. */
-function pickDestinations(month) {
-  const rot = (arr, n) => arr.map((_, i) => arr[(n + i) % arr.length]);
+/* Pick three good-weather destinations for the month a break falls in. A seed
+   (derived from the period) varies the choice per suggestion, so the list isn't
+   the same three all the way down. Winter shows one long-haul exotic + one
+   close warm spot + skiing in the Alps. */
+function pickDestinations(month, seed = 0) {
+  const at = (arr, n) => arr[((n % arr.length) + arr.length) % arr.length];
   if ([10, 11, 0, 1].includes(month)) {
-    const exotic = PLACES[rot(WINTER_EXOTIC, month)[0]];
-    const near = PLACES[rot(WINTER_NEAR, month)[0]];
-    return [exotic, near, PLACES.alps];
+    return [PLACES[at(WINTER_EXOTIC, seed)], PLACES[at(WINTER_NEAR, seed + 1)], PLACES.alps];
   }
   let pool;
   if ([4, 5, 6, 7].includes(month)) pool = SEASON_POOLS.summer;
   else if ([2, 3].includes(month)) pool = SEASON_POOLS.spring;
   else pool = SEASON_POOLS.autumn; // 8, 9
-  return rot(pool, month).slice(0, 3).map((k) => PLACES[k]);
+  return [at(pool, seed), at(pool, seed + 1), at(pool, seed + 2)].map((k) => PLACES[k]);
 }
 
 /* ---------- live prices via our Cloudflare Worker ---------- */
 
 const PRICE_API = "https://friplanner-priser.andersjkirk.workers.dev/";
-const FLIGHT_ORIGIN_AIRPORT = "BLL"; // Billund
 const HOTEL_LOC = {
   barcelona: "Barcelona", nice: "Nice", split: "Split", mallorca: "Palma de Mallorca",
   athens: "Athens", lisbon: "Lisbon", seville: "Seville", malta: "Malta", rome: "Rome",
@@ -125,12 +123,45 @@ Object.keys(PLACES).forEach((k) => {
 });
 
 const priceCache = new Map();
+const MARKER = "544938"; // Travelpayouts affiliate marker
 function formatKr(n) { return `${Math.round(n).toLocaleString("da-DK")} kr`; }
 
+/* Detect the visitor's nearest Danish departure airport from their IP, so
+   prices and links use the airport that makes sense for them. */
+async function detectOriginAirport() {
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const d = await res.json();
+    if (d && d.country_code === "DK" && typeof d.longitude === "number") {
+      const lon = d.longitude, lat = d.latitude;
+      if (lat > 56.7 && lon < 10.6) state.originAirport = "AAL"; // Nordjylland → Aalborg
+      else if (lon < 11.3) state.originAirport = "BLL";          // Jylland/Fyn → Billund
+      else state.originAirport = "CPH";                          // Sjælland → København
+    }
+  } catch (e) { /* keep default CPH */ }
+}
+
+/* Aviasales deep search link (marker = earns; pre-fills the search).
+   Format: ORIGIN + DDMM(out) + DEST + DDMM(home) + passengers */
+function aviasalesUrl(dest, period) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const ddmm = (d) => pad(d.getDate()) + pad(d.getMonth() + 1);
+  const home = new Date(period.end); home.setDate(home.getDate() + 1);
+  const code = `${state.originAirport}${ddmm(period.start)}${dest}${ddmm(home)}1`;
+  return `https://www.aviasales.com/search/${code}?marker=${MARKER}&currency=dkk`;
+}
+
+/* Hotellook deep search link (marker = earns; pre-fills the search). */
+function hotellookUrl(loc, period) {
+  const checkout = new Date(period.end); checkout.setDate(checkout.getDate() + 1);
+  return `https://search.hotellook.com/?marker=${MARKER}&destination=${encodeURIComponent(loc)}` +
+    `&checkIn=${isoDate(period.start)}&checkOut=${isoDate(checkout)}&adults=2&currency=dkk`;
+}
+
 async function fetchTripPrice(dest, loc, checkIn, checkOut) {
-  const key = `${dest}|${loc}|${checkIn}|${checkOut}`;
+  const key = `${state.originAirport}|${dest}|${loc}|${checkIn}|${checkOut}`;
   if (priceCache.has(key)) return priceCache.get(key);
-  const url = `${PRICE_API}?origin=${FLIGHT_ORIGIN_AIRPORT}&dest=${dest}` +
+  const url = `${PRICE_API}?origin=${state.originAirport}&dest=${dest}` +
     `&loc=${encodeURIComponent(loc)}&checkIn=${checkIn}&checkOut=${checkOut}`;
   try {
     const res = await fetch(url);
@@ -178,29 +209,6 @@ function selectedPeriod() {
 function isoDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
-
-function bookingUrl(query, period) {
-  let url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(query)}`;
-  if (period) {
-    const checkout = new Date(period.end);
-    checkout.setDate(checkout.getDate() + 1); // night after the last day off
-    url += `&checkin=${isoDate(period.start)}&checkout=${isoDate(checkout)}`;
-  }
-  return url;
-}
-
-/* Momondo round-trip flight search, e.g.
-   https://www.momondo.dk/flight-search/CPH-BCN/2026-12-19/2026-12-28?sort=price_a */
-function momondoFlightUrl(iata, period) {
-  const base = `https://www.momondo.dk/flight-search/${FLIGHT_ORIGIN_IATA}-${iata}`;
-  if (period) {
-    const back = new Date(period.end);
-    back.setDate(back.getDate() + 1); // fly home the day after the break ends
-    return `${base}/${isoDate(period.start)}/${isoDate(back)}?sort=price_a`;
-  }
-  return `${base}?sort=price_a`;
-}
-
 
 /* ---------- suggestion key helpers ---------- */
 
@@ -451,11 +459,12 @@ function renderTrips(s) {
   const back = new Date(period.end);
   back.setDate(back.getDate() + 1);
   const checkOut = isoDate(back);
-  const cards = pickDestinations(s.startDate.getMonth()).map((d) => {
+  const seed = s.startDate.getMonth() * 31 + s.startDate.getDate(); // varies per suggestion
+  const cards = pickDestinations(s.startDate.getMonth(), seed).map((d) => {
     const fly = d.iata
-      ? `<a class="trip-fly" href="${momondoFlightUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
+      ? `<a class="trip-fly" href="${aviasalesUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Se fly</a>`
       : "";
-    const hotel = `<a class="trip-hotel" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
+    const hotel = `<a class="trip-hotel" href="${hotellookUrl(d.hotelLoc, period)}" target="_blank" rel="noopener">🏨 Se hotel</a>`;
     const priceEl = d.iata
       ? `<div class="trip-price" data-dest="${d.iata}" data-loc="${d.hotelLoc}" data-cin="${checkIn}" data-cout="${checkOut}">Henter priser…</div>`
       : "";
@@ -918,6 +927,12 @@ function init() {
   renderAll();
   renderSavedPlans();
   initScrollSpy();
+
+  // refine the departure airport from the visitor's location, then refresh
+  // any prices/links that depend on it
+  detectOriginAirport().then(() => {
+    if (state.originAirport !== "CPH") { priceCache.clear(); renderSuggestions(); }
+  });
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
