@@ -141,21 +141,21 @@ async function detectOriginAirport() {
   } catch (e) { /* keep default CPH */ }
 }
 
-/* Aviasales deep search link (marker = earns; pre-fills the search).
-   Format: ORIGIN + DDMM(out) + DEST + DDMM(home) + passengers */
-function aviasalesUrl(dest, period) {
-  const pad = (n) => String(n).padStart(2, "0");
-  const ddmm = (d) => pad(d.getDate()) + pad(d.getMonth() + 1);
+/* Kiwi.com round-trip search in Danish, prices in DKK. Monetised by the Drive
+   script. Pre-fills origin → destination with the dates. */
+function kiwiUrl(dest, period) {
   const home = new Date(period.end); home.setDate(home.getDate() + 1);
-  const code = `${state.originAirport}${ddmm(period.start)}${dest}${ddmm(home)}1`;
-  return `https://www.aviasales.com/search/${code}?marker=${MARKER}&currency=dkk`;
+  return `https://www.kiwi.com/dk/search/results/${state.originAirport}/${dest}` +
+    `/${isoDate(period.start)}/${isoDate(home)}?currency=dkk`;
 }
 
-/* Hotellook deep search link (marker = earns; pre-fills the search). */
-function hotellookUrl(loc, period) {
+/* Booking.com hotel search in Danish, prices in DKK, dates pre-filled.
+   Monetised by the Drive script. */
+function bookingUrl(city, period) {
   const checkout = new Date(period.end); checkout.setDate(checkout.getDate() + 1);
-  return `https://search.hotellook.com/?marker=${MARKER}&destination=${encodeURIComponent(loc)}` +
-    `&checkIn=${isoDate(period.start)}&checkOut=${isoDate(checkout)}&adults=2&currency=dkk`;
+  return `https://www.booking.com/searchresults.da.html?ss=${encodeURIComponent(city)}` +
+    `&checkin=${isoDate(period.start)}&checkout=${isoDate(checkout)}` +
+    `&selected_currency=DKK&group_adults=2`;
 }
 
 async function fetchTripPrice(dest, loc, checkIn, checkOut) {
@@ -462,9 +462,9 @@ function renderTrips(s) {
   const seed = s.startDate.getMonth() * 31 + s.startDate.getDate(); // varies per suggestion
   const cards = pickDestinations(s.startDate.getMonth(), seed).map((d) => {
     const fly = d.iata
-      ? `<a class="trip-fly" href="${aviasalesUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Se fly</a>`
+      ? `<a class="trip-fly" href="${kiwiUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Se fly</a>`
       : "";
-    const hotel = `<a class="trip-hotel" href="${hotellookUrl(d.hotelLoc, period)}" target="_blank" rel="noopener">🏨 Se hotel</a>`;
+    const hotel = `<a class="trip-hotel" href="${bookingUrl(d.hotelLoc, period)}" target="_blank" rel="noopener">🏨 Se hotel</a>`;
     const priceEl = d.iata
       ? `<div class="trip-price" data-dest="${d.iata}" data-loc="${d.hotelLoc}" data-cin="${checkIn}" data-cout="${checkOut}">Henter priser…</div>`
       : "";
