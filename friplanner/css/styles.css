@@ -129,20 +129,21 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .suggestion-card.is-best { border-color: var(--sun); box-shadow: 0 0 0 2px rgba(255,213,107,0.5), var(--shadow-soft); background: linear-gradient(135deg, rgba(255,213,107,0.12), rgba(255,255,255,0.92)); }
 .best-badge { align-self: flex-start; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.03em; color: #8a5a00; background: linear-gradient(135deg, var(--sun), #FFB84D); padding: 4px 10px; border-radius: 100px; margin-bottom: 10px; box-shadow: 0 4px 10px -4px rgba(255,184,77,0.6); }
 .suggestions-list { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
-.suggestion-card { display: flex; flex-direction: column; border: 1px solid var(--glass-border); border-radius: 16px; padding: 14px 16px; background: var(--glass-strong); transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease; animation: fadeSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) backwards; position: relative; overflow: hidden; }
-.suggestion-top { display: flex; gap: 12px; align-items: flex-start; }
+.suggestion-card { display: flex; flex-direction: column; border: 1px solid var(--glass-border); border-radius: 16px; padding: 18px 20px; background: var(--glass-strong); transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease; animation: fadeSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) backwards; position: relative; overflow: hidden; }
+.suggestion-top { display: flex; gap: 14px; align-items: flex-start; }
 .suggestion-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--green), var(--green-deep)); opacity: 0; transition: opacity 0.2s ease; }
 .suggestion-card:hover { box-shadow: 0 8px 22px -8px rgba(40,70,95,0.26); }
 .suggestion-card:hover::before { opacity: 1; }
 .suggestion-card:has(input:checked) { background: linear-gradient(135deg, rgba(47,174,106,0.12), rgba(47,174,106,0.05)); border-color: rgba(30,139,82,0.45); }
 .suggestion-card:has(input:checked)::before { opacity: 1; }
-.suggestion-checkbox input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--green-deep); cursor: pointer; transition: transform 0.15s ease; }
+.suggestion-checkbox input { width: 26px; height: 26px; margin-top: 4px; accent-color: var(--green-deep); cursor: pointer; transition: transform 0.15s ease; }
 .suggestion-checkbox input:active { transform: scale(0.85); }
 .suggestion-body { flex: 1; cursor: pointer; }
-.suggestion-tag { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sea); margin-bottom: 3px; }
-.suggestion-dates { font-family: "Fraunces", Georgia, serif; font-size: 1.1rem; font-weight: 600; }
-.suggestion-metrics { display: flex; gap: 14px; margin-top: 7px; font-size: 0.85rem; color: var(--ink-soft); flex-wrap: wrap; align-items: center; }
-.ratio-pill { background: linear-gradient(135deg, var(--sun), var(--coral)); color: #fff; border-radius: 100px; padding: 3px 12px; font-weight: 800; font-size: 0.8rem; display: inline-block; box-shadow: 0 4px 12px -4px rgba(255,126,95,0.5); }
+.suggestion-tag { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sea); margin-bottom: 5px; }
+.suggestion-dates { font-family: "Fraunces", Georgia, serif; font-size: 1.45rem; font-weight: 600; line-height: 1.2; color: var(--ink); }
+.suggestion-metrics { display: flex; gap: 18px; margin-top: 10px; font-size: 1.02rem; color: var(--ink-soft); flex-wrap: wrap; align-items: center; }
+.suggestion-metrics strong { color: var(--ink); font-size: 1.1em; }
+.ratio-pill { background: linear-gradient(135deg, var(--sun), var(--coral)); color: #fff; border-radius: 100px; padding: 5px 14px; font-weight: 800; font-size: 0.95rem; display: inline-block; box-shadow: 0 4px 12px -4px rgba(255,126,95,0.5); }
 
 /* trips revealed inside a checked suggestion — three cards left-to-right */
 .trips { margin-top: 14px; border-top: 1px dashed rgba(30,139,82,0.35); padding-top: 14px; animation: fadeSlideUp 0.3s ease backwards; }
@@ -155,8 +156,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .trip-actions { display: flex; gap: 6px; width: 100%; margin-top: 6px; }
 .trip-actions a { flex: 1; text-align: center; text-decoration: none; font-size: 0.74rem; font-weight: 700; padding: 8px 6px; border-radius: 10px; white-space: nowrap; transition: transform 0.15s ease, filter 0.15s ease; }
 .trip-actions a:hover { transform: translateY(-1px); }
-.trip-hotel { background: linear-gradient(135deg, var(--sea), var(--sea-deep)); color: #fff; }
-.trip-fly { background: var(--accent-weekend-soft); color: var(--sea-deep); }
+.trip-fly { background: linear-gradient(135deg, var(--sea), var(--sea-deep)); color: #fff; }
+.trip-hotel { background: var(--accent-weekend-soft); color: var(--sea-deep); }
 @media (max-width: 560px) { .trips-grid { grid-template-columns: 1fr; } }
 
 .suggestions-list .suggestion-card:nth-child(1) { animation-delay: 0.02s; }

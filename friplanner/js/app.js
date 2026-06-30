@@ -41,25 +41,26 @@ function cacheEls() {
 
 /* ---------- destinations ---------- */
 
-const FLIGHT_ORIGIN = "Copenhagen";
+const FLIGHT_ORIGIN_IATA = "CPH"; // København
 
-/* Catalogue of European destinations with the months their weather is good. */
+/* Catalogue of European destinations with the months their weather is good.
+   `iata` is the destination airport used for Momondo flight links. */
 const PLACES = {
-  barcelona: { name: "Barcelona", query: "Barcelona, Spanien", city: "Barcelona", emoji: "🏖️", meta: "Strand & tapas", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
-  nice:      { name: "Nice", query: "Nice, Frankrig", city: "Nice", emoji: "🌴", meta: "Den franske riviera", grad: "linear-gradient(135deg,#FFB36B,#FF7E5F)" },
-  split:     { name: "Split", query: "Split, Kroatien", city: "Split", emoji: "⛵", meta: "Adriaterhavet", grad: "linear-gradient(135deg,#46C2C9,#2A8FB0)" },
-  mallorca:  { name: "Mallorca", query: "Mallorca, Spanien", city: "Palma de Mallorca", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
-  athens:    { name: "Athen", query: "Athen, Grækenland", city: "Athens", emoji: "🏛️", meta: "Sol & historie", grad: "linear-gradient(135deg,#7FC4E8,#3E8FB0)" },
-  lisbon:    { name: "Lissabon", query: "Lissabon, Portugal", city: "Lisbon", emoji: "🚋", meta: "Pastel & kyst", grad: "linear-gradient(135deg,#FFD37A,#F58C5A)" },
-  seville:   { name: "Sevilla", query: "Sevilla, Spanien", city: "Seville", emoji: "☀️", meta: "Varmt & maurisk", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
-  malta:     { name: "Malta", query: "Malta", city: "Malta", emoji: "🐠", meta: "Øsol i Middelhavet", grad: "linear-gradient(135deg,#5BC8C2,#2A9CC0)" },
-  rome:      { name: "Rom", query: "Rom, Italien", city: "Rome", emoji: "🏛️", meta: "Historie & is", grad: "linear-gradient(135deg,#F6A56B,#C9784B)" },
-  cyprus:    { name: "Cypern", query: "Paphos, Cypern", city: "Paphos", emoji: "🏝️", meta: "Lun kyst", grad: "linear-gradient(135deg,#FFB86B,#FF7E8A)" },
-  catania:   { name: "Sicilien", query: "Catania, Italien", city: "Catania", emoji: "🍋", meta: "Sol & vulkan", grad: "linear-gradient(135deg,#FFD46B,#F58C4A)" },
-  tenerife:  { name: "Tenerife", query: "Tenerife, Spanien", city: "Tenerife", emoji: "🌋", meta: "Evig sommer", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
-  madeira:   { name: "Madeira", query: "Funchal, Madeira", city: "Funchal", emoji: "🌺", meta: "Forår hele året", grad: "linear-gradient(135deg,#5BD0A0,#2AA0B0)" },
-  malaga:    { name: "Malaga", query: "Malaga, Spanien", city: "Malaga", emoji: "🌞", meta: "Costa del Sol", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
-  alps:      { name: "Alperne", query: "Innsbruck, Østrig", city: "Innsbruck", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#9FD0F0,#3E6FB0)" },
+  barcelona: { name: "Barcelona", query: "Barcelona, Spanien", iata: "BCN", emoji: "🏖️", meta: "Strand & tapas", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
+  nice:      { name: "Nice", query: "Nice, Frankrig", iata: "NCE", emoji: "🌴", meta: "Den franske riviera", grad: "linear-gradient(135deg,#FFB36B,#FF7E5F)" },
+  split:     { name: "Split", query: "Split, Kroatien", iata: "SPU", emoji: "⛵", meta: "Adriaterhavet", grad: "linear-gradient(135deg,#46C2C9,#2A8FB0)" },
+  mallorca:  { name: "Mallorca", query: "Mallorca, Spanien", iata: "PMI", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
+  athens:    { name: "Athen", query: "Athen, Grækenland", iata: "ATH", emoji: "🏛️", meta: "Sol & historie", grad: "linear-gradient(135deg,#7FC4E8,#3E8FB0)" },
+  lisbon:    { name: "Lissabon", query: "Lissabon, Portugal", iata: "LIS", emoji: "🚋", meta: "Pastel & kyst", grad: "linear-gradient(135deg,#FFD37A,#F58C5A)" },
+  seville:   { name: "Sevilla", query: "Sevilla, Spanien", iata: "SVQ", emoji: "☀️", meta: "Varmt & maurisk", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
+  malta:     { name: "Malta", query: "Malta", iata: "MLA", emoji: "🐠", meta: "Øsol i Middelhavet", grad: "linear-gradient(135deg,#5BC8C2,#2A9CC0)" },
+  rome:      { name: "Rom", query: "Rom, Italien", iata: "FCO", emoji: "🏛️", meta: "Historie & is", grad: "linear-gradient(135deg,#F6A56B,#C9784B)" },
+  cyprus:    { name: "Cypern", query: "Paphos, Cypern", iata: "PFO", emoji: "🏝️", meta: "Lun kyst", grad: "linear-gradient(135deg,#FFB86B,#FF7E8A)" },
+  catania:   { name: "Sicilien", query: "Catania, Italien", iata: "CTA", emoji: "🍋", meta: "Sol & vulkan", grad: "linear-gradient(135deg,#FFD46B,#F58C4A)" },
+  tenerife:  { name: "Tenerife", query: "Tenerife, Spanien", iata: "TFS", emoji: "🌋", meta: "Evig sommer", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
+  madeira:   { name: "Madeira", query: "Funchal, Madeira", iata: "FNC", emoji: "🌺", meta: "Forår hele året", grad: "linear-gradient(135deg,#5BD0A0,#2AA0B0)" },
+  malaga:    { name: "Malaga", query: "Malaga, Spanien", iata: "AGP", emoji: "🌞", meta: "Costa del Sol", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
+  alps:      { name: "Alperne", query: "Innsbruck, Østrig", iata: "INN", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#9FD0F0,#3E6FB0)" },
 };
 
 const SEASON_POOLS = {
@@ -117,14 +118,16 @@ function bookingUrl(query, period) {
   return url;
 }
 
-function flightsUrl(city, period) {
-  let q = `flights from ${FLIGHT_ORIGIN} to ${city}`;
+/* Momondo round-trip flight search, e.g.
+   https://www.momondo.dk/flight-search/CPH-BCN/2026-12-19/2026-12-28?sort=price_a */
+function momondoFlightUrl(iata, period) {
+  const base = `https://www.momondo.dk/flight-search/${FLIGHT_ORIGIN_IATA}-${iata}`;
   if (period) {
     const back = new Date(period.end);
-    back.setDate(back.getDate() + 1);
-    q += ` on ${isoDate(period.start)} returning ${isoDate(back)}`;
+    back.setDate(back.getDate() + 1); // fly home the day after the break ends
+    return `${base}/${isoDate(period.start)}/${isoDate(back)}?sort=price_a`;
   }
-  return `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`;
+  return `${base}?sort=price_a`;
 }
 
 
@@ -349,16 +352,16 @@ function renderSuggestions() {
 function renderTrips(s) {
   const period = { start: s.startDate, end: s.endDate };
   const cards = pickDestinations(s.startDate.getMonth()).map((d) => {
-    const hotel = `<a class="trip-hotel" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
-    const fly = d.city
-      ? `<a class="trip-fly" href="${flightsUrl(d.city, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
+    const fly = d.iata
+      ? `<a class="trip-fly" href="${momondoFlightUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
       : "";
+    const hotel = `<a class="trip-hotel" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
     return `
       <div class="trip">
         <div class="trip-ico" style="background:${d.grad}">${d.emoji}</div>
         <div class="trip-name">${d.name}</div>
         <div class="trip-meta">${d.meta}</div>
-        <div class="trip-actions">${hotel}${fly}</div>
+        <div class="trip-actions">${fly}${hotel}</div>
       </div>`;
   }).join("");
   return `<div class="trips"><div class="trips-title">✈️ Gode rejsemål i denne periode</div><div class="trips-grid">${cards}</div></div>`;
