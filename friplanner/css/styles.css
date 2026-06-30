@@ -158,9 +158,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .trip-meta { font-size: 0.74rem; color: var(--ink-soft); }
 .trip-price { font-size: 0.8rem; font-weight: 800; color: var(--green-deep); margin-top: 4px; min-height: 1.1em; }
 
-/* travel search widget (Travelpayouts) */
-.travel-widget { margin-top: 14px; min-height: 80px; }
-
 /* ---------- mine fridage (optional days chips) ---------- */
 .my-days { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); }
 .my-days-label { font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); display: block; margin-bottom: 10px; }
