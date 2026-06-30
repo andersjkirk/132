@@ -7,6 +7,12 @@ function isWeekend(date) {
   return d === 0 || d === 6;
 }
 
+/* Optional "kan-fridage" the user has enabled (set of date keys → name). */
+let optionalFreeDays = new Map();
+function setOptionalFreeDays(map) {
+  optionalFreeDays = map instanceof Map ? map : new Map();
+}
+
 function buildYearDays(year) {
   const holidayMap = Holidays.getHolidayMap(year);
   const start = new Date(year, 0, 1);
@@ -15,7 +21,7 @@ function buildYearDays(year) {
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     const date = new Date(d);
     const key = Holidays.dateKey(date);
-    const holidayName = holidayMap.get(key) || null;
+    const holidayName = holidayMap.get(key) || optionalFreeDays.get(key) || null;
     days.push({
       date,
       key,
@@ -164,4 +170,5 @@ window.BridgeLogic = {
   findBridgeSuggestions,
   describeSuggestion,
   analyzeFixedPeriod,
+  setOptionalFreeDays,
 };

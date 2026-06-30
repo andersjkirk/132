@@ -157,6 +157,38 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* travel search widget (Travelpayouts) */
 .travel-widget { margin-top: 14px; min-height: 80px; }
+
+/* ---------- mine fridage (optional days chips) ---------- */
+.my-days { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); }
+.my-days-label { font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); display: block; margin-bottom: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 9px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); border-radius: 100px; padding: 8px 14px; font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; background: #fff; transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease; user-select: none; }
+.chip:hover { border-color: var(--green); }
+.chip .chip-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid #C2D2DD; display: inline-block; position: relative; transition: background 0.15s ease, border-color 0.15s ease; }
+.chip.on { border-color: var(--green); background: linear-gradient(135deg, rgba(47,174,106,0.12), rgba(47,174,106,0.04)); color: var(--green-deep); }
+.chip.on .chip-box { background: var(--green-deep); border-color: var(--green-deep); }
+.chip.on .chip-box::after { content: "✓"; color: #fff; font-size: 13px; position: absolute; left: 2px; top: -3px; }
+
+/* ---------- godt at vide (facts) ---------- */
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.fact { border: 1px solid var(--line); border-radius: 14px; padding: 15px; background: var(--glass-strong); }
+.fact-ico { font-size: 1.5rem; }
+.fact h3 { font-family: "Inter", sans-serif; font-size: 0.95rem; font-weight: 800; margin: 8px 0 5px; color: #1B3A48; }
+.fact p { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.45; margin: 0; }
+.facts-disc { font-size: 0.76rem; color: var(--ink-soft); margin-top: 12px; font-style: italic; }
+@media (max-width: 640px) { .facts { grid-template-columns: 1fr; } }
+
+/* ---------- brug din plan (collapsible) ---------- */
+.use-plan-card { padding: 0; }
+.use-plan-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: none; border: none; padding: 20px 22px; font-family: "Fraunces", Georgia, serif; font-size: 1.2rem; font-weight: 600; color: var(--ink); cursor: pointer; }
+.use-plan-toggle .up-chevron { transition: transform 0.25s ease; color: var(--ink-soft); }
+.use-plan-toggle[aria-expanded="true"] .up-chevron { transform: rotate(180deg); }
+.use-plan-body { padding: 0 22px 22px; }
+.use-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.boss-box { margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 16px; }
+.boss-title { font-weight: 700; margin-bottom: 10px; }
+.boss-row { display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; margin-bottom: 0; }
+.boss-row input { flex: 1; min-width: 220px; }
 .trip-actions { display: flex; gap: 6px; width: 100%; margin-top: 6px; }
 .trip-actions a { flex: 1; text-align: center; text-decoration: none; font-size: 0.74rem; font-weight: 700; padding: 8px 6px; border-radius: 10px; white-space: nowrap; transition: transform 0.15s ease, filter 0.15s ease; }
 .trip-actions a:hover { transform: translateY(-1px); }
@@ -219,6 +251,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .nav-btn.is-active { color: #fff; background: linear-gradient(135deg, var(--sea), var(--sea-deep)); box-shadow: 0 8px 20px -6px rgba(30,126,158,0.5); }
 .nav-btn.is-active .nav-icon { transform: scale(1.15) translateY(-1px); }
 .nav-btn:active { transform: scale(0.9); }
+
+/* ---------- print ---------- */
+@media print {
+  .app-header, .app-nav, .travel-card, .ad-slot, .use-plan-card, .facts-card,
+  .save-plan-card, .toggle-row, .hero-cta { display: none !important; }
+  body, html { background: #fff; }
+  .card { box-shadow: none; border-color: #ccc; break-inside: avoid; }
+  .app-main { margin: 0; padding: 0; }
+}
 
 /* ---------- suggestions + calendar side by side ---------- */
 .bridge-row { display: flex; flex-direction: column; gap: 18px; }

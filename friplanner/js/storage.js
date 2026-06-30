@@ -21,6 +21,8 @@ function savePlan(plan) {
     fixedPeriod: plan.fixedPeriod || null,
     selectedKeys: plan.selectedKeys || [],
     manualDays: plan.manualDays || [],
+    optionalDays: plan.optionalDays || [],
+    extraWeek: !!plan.extraWeek,
     savedAt: new Date().toISOString(),
   };
   const existingIndex = plans.findIndex((p) => p.id === record.id);

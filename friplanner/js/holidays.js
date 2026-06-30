@@ -44,8 +44,19 @@ function getHolidayMap(year) {
   return map;
 }
 
+/* Optional "kan-fridage" — not legal holidays, but many get them off via their
+   collective agreement. Keyed by an id the UI toggles. */
+function getOptionalDays(year) {
+  return [
+    { id: "may1", date: new Date(year, 4, 1), name: "1. maj" },
+    { id: "grundlov", date: new Date(year, 5, 5), name: "Grundlovsdag" },
+    { id: "xmaseve", date: new Date(year, 11, 24), name: "Juleaftensdag" },
+    { id: "nyeve", date: new Date(year, 11, 31), name: "Nytårsaftensdag" },
+  ];
+}
+
 function dateKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-window.Holidays = { getHolidays, getHolidayMap, dateKey };
+window.Holidays = { getHolidays, getHolidayMap, getOptionalDays, dateKey };

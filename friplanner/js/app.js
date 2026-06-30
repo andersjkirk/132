@@ -8,7 +8,8 @@ const state = {
   selected: new Set(), // suggestion keys
   manualDays: new Set(), // user-picked individual vacation day keys
   showWholeYear: false,
-  showAllPeriods: false, // also show plain weeks (non-bridge)
+  optionalDays: new Set(), // enabled "kan-fridage" ids (may1, grundlov, ...)
+  extraWeek: false, // 6. ferieuge → +5 vacation days
   view: "plan",
 };
 
@@ -30,13 +31,20 @@ function cacheEls() {
   els.clearFixedBtn = $("clear-fixed-period");
   els.fixedPeriodResult = $("fixed-period-result");
   els.showWholeYear = $("show-whole-year");
-  els.showAllPeriods = $("show-all-periods");
+  els.optionalDays = $("optional-days");
   els.suggestionsList = $("suggestions-list");
   els.calendarGrid = $("calendar-grid");
   els.savedPlansList = $("saved-plans-list");
   els.planNameInput = $("plan-name-input");
   els.savePlanBtn = $("save-plan-btn");
   els.savePlanFeedback = $("save-plan-feedback");
+  els.usePlanToggle = $("use-plan-toggle");
+  els.usePlanBody = $("use-plan-body");
+  els.addToCalendarBtn = $("add-to-calendar-btn");
+  els.printPlanBtn = $("print-plan-btn");
+  els.bossEmail = $("boss-email");
+  els.bossMailBtn = $("boss-mail-btn");
+  els.usePlanFeedback = $("use-plan-feedback");
 }
 
 /* ---------- destinations ---------- */
@@ -206,7 +214,7 @@ function curateBridges(bridges) {
 function getAllSuggestions() {
   const { days, suggestions } = BridgeLogic.findBridgeSuggestions(state.year);
   const bridges = suggestions.map((s) => ({ ...s, key: suggestionKey(s), source: "bridge" }));
-  let all = state.showAllPeriods ? bridges : curateBridges(bridges);
+  let all = curateBridges(bridges);
 
   if (state.fixedPeriod) {
     const analysis = BridgeLogic.analyzeFixedPeriod(
@@ -249,14 +257,19 @@ function visibleSuggestions(all) {
   });
 }
 
+function effectiveBudget() {
+  return state.vacationDays + (state.extraWeek ? 5 : 0);
+}
+
 function budgetFilteredSuggestions(all) {
   const selectedList = all.filter((s) => state.selected.has(s.key));
   const totalSelectedCost = selectedList.reduce((sum, s) => sum + s.vacationDays, 0);
+  const budget = effectiveBudget();
 
   return all.filter((s) => {
     const isSelected = state.selected.has(s.key);
     const remainingExcludingThis =
-      state.vacationDays - totalSelectedCost + (isSelected ? s.vacationDays : 0);
+      budget - totalSelectedCost + (isSelected ? s.vacationDays : 0);
     return isSelected || s.vacationDays <= remainingExcludingThis;
   });
 }
@@ -274,6 +287,9 @@ function renderUnitHint() {
   } else {
     const weeks = state.vacationDays / 5;
     els.unitHint.textContent = `${state.vacationDays} dage ≈ ${weeks.toFixed(1)} uger`;
+  }
+  if (state.extraWeek) {
+    els.unitHint.textContent += ` · +5 fra 6. ferieuge = ${effectiveBudget()} i alt`;
   }
 }
 
@@ -566,6 +582,8 @@ function loadPlan(id) {
     : null;
   state.selected = new Set(plan.selectedKeys);
   state.manualDays = new Set(plan.manualDays || []);
+  state.optionalDays = new Set(plan.optionalDays || []);
+  state.extraWeek = !!plan.extraWeek;
 
   els.yearSelect.value = String(state.year);
   els.vacationInput.value = state.vacationDays;
@@ -580,13 +598,105 @@ function toInputDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/* ---------- mine fridage (optional days) ---------- */
+
+// push the user's enabled "kan-fridage" into the bridge engine for the year
+function applyOptionalFreeDays() {
+  const map = new Map();
+  for (const od of Holidays.getOptionalDays(state.year)) {
+    if (state.optionalDays.has(od.id)) map.set(Holidays.dateKey(od.date), od.name);
+  }
+  BridgeLogic.setOptionalFreeDays(map);
+}
+
+function renderOptionalChips() {
+  const items = Holidays.getOptionalDays(state.year).map((od) => ({
+    id: od.id,
+    label: od.name === "Grundlovsdag" ? "Grundlovsdag (5. juni)" : od.name,
+  }));
+  items.push({ id: "week6", label: "6. ferieuge (+5 dage)" });
+  els.optionalDays.innerHTML = items
+    .map((it) => {
+      const on = it.id === "week6" ? state.extraWeek : state.optionalDays.has(it.id);
+      return `<button type="button" class="chip${on ? " on" : ""}" data-day-id="${it.id}"><span class="chip-box"></span>${it.label}</button>`;
+    })
+    .join("");
+}
+
 /* ---------- render everything ---------- */
 
 function renderAll() {
+  applyOptionalFreeDays();
   renderUnitHint();
+  renderOptionalChips();
   renderFixedPeriodResult();
   renderSuggestions();
   renderCalendar();
+}
+
+/* ---------- brug din plan: calendar file, print, boss email ---------- */
+
+// the chosen vacation days (workdays only) grouped into consecutive ranges
+function selectedVacationInfo() {
+  const { days, all } = getAllSuggestions();
+  const usedKeys = computeUsedKeys(days, all);
+  const used = days.filter((d) => usedKeys.has(d.key)).map((d) => d.date);
+  used.sort((a, b) => a - b);
+  const ranges = [];
+  for (const d of used) {
+    const last = ranges[ranges.length - 1];
+    const next = last && new Date(last.end);
+    if (next) next.setDate(next.getDate() + 1);
+    if (last && Holidays.dateKey(next) === Holidays.dateKey(d)) last.end = d;
+    else ranges.push({ start: d, end: d });
+  }
+  return { ranges, count: usedKeys.size };
+}
+
+function formatRange(r) {
+  const long = (d) => d.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+  if (Holidays.dateKey(r.start) === Holidays.dateKey(r.end)) return long(r.start);
+  if (r.start.getMonth() === r.end.getMonth() && r.start.getFullYear() === r.end.getFullYear()) {
+    const month = r.start.toLocaleDateString("da-DK", { month: "long", year: "numeric" });
+    return `${r.start.getDate()}.–${r.end.getDate()}. ${month}`;
+  }
+  return `${long(r.start)} – ${long(r.end)}`;
+}
+
+function downloadICS() {
+  const { ranges, count } = selectedVacationInfo();
+  if (!count) { els.usePlanFeedback.textContent = "Vælg mindst ét forslag eller en feriedag først."; return; }
+  const pad = (n) => String(n).padStart(2, "0");
+  const fmt = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Friplanner//DA//", "CALSCALE:GREGORIAN"];
+  ranges.forEach((r, i) => {
+    const end = new Date(r.end); end.setDate(end.getDate() + 1); // DTEND is exclusive
+    lines.push("BEGIN:VEVENT", `UID:friplanner-${Date.now()}-${i}@friplanner`,
+      `DTSTAMP:${fmt(new Date())}T000000Z`, `DTSTART;VALUE=DATE:${fmt(r.start)}`,
+      `DTEND;VALUE=DATE:${fmt(end)}`, "SUMMARY:Ferie 🌴", "TRANSP:TRANSPARENT", "END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "friplanner-ferie.ics";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  els.usePlanFeedback.textContent = "Kalenderfil hentet — åbn den for at lægge dagene i din kalender.";
+}
+
+function sendBossMail() {
+  const { ranges, count } = selectedVacationInfo();
+  if (!count) { els.usePlanFeedback.textContent = "Vælg mindst ét forslag eller en feriedag først."; return; }
+  const list = ranges.map((r) => formatRange(r)).join("\n- ");
+  const subject = "Ansøgning om ferie";
+  const body =
+    `Hej,\n\nJeg vil gerne søge om ferie på følgende dage:\n- ${list}\n\n` +
+    `Det er i alt ${count} feriedag${count === 1 ? "" : "e"}. Sig endelig til, hvis I har spørgsmål.\n\n` +
+    `Venlig hilsen\n[Dit navn]`;
+  const to = els.bossEmail.value.trim();
+  window.location.href =
+    `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 /* ---------- event binding ---------- */
@@ -636,11 +746,30 @@ function bindEvents() {
     renderSuggestions();
   });
 
-  els.showAllPeriods.addEventListener("change", () => {
-    state.showAllPeriods = els.showAllPeriods.checked;
-    renderSuggestions();
-    renderCalendar();
+  // mine fridage chips
+  els.optionalDays.addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-day-id]");
+    if (!chip) return;
+    const id = chip.dataset.dayId;
+    if (id === "week6") {
+      state.extraWeek = !state.extraWeek;
+    } else if (state.optionalDays.has(id)) {
+      state.optionalDays.delete(id);
+    } else {
+      state.optionalDays.add(id);
+    }
+    renderAll();
   });
+
+  // collapsible "Brug din plan"
+  els.usePlanToggle.addEventListener("click", () => {
+    const open = els.usePlanBody.hidden;
+    els.usePlanBody.hidden = !open;
+    els.usePlanToggle.setAttribute("aria-expanded", String(open));
+  });
+  els.addToCalendarBtn.addEventListener("click", downloadICS);
+  els.printPlanBtn.addEventListener("click", () => window.print());
+  els.bossMailBtn.addEventListener("click", sendBossMail);
 
   els.suggestionsList.addEventListener("change", (e) => {
     const key = e.target.dataset.selectKey;
@@ -689,6 +818,8 @@ function bindEvents() {
         : null,
       selectedKeys: Array.from(state.selected),
       manualDays: Array.from(state.manualDays),
+      optionalDays: Array.from(state.optionalDays),
+      extraWeek: state.extraWeek,
     });
     els.savePlanFeedback.textContent = `Plan “${name}” gemt.`;
     els.planNameInput.value = "";
