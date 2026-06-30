@@ -70,53 +70,6 @@ const SEASON_POOLS = {
 };
 const WINTER_WARM = ["tenerife", "madeira", "malaga", "cyprus"];   // nov–feb
 
-/* City names used for Hotellook hotel-price lookups. */
-const HOTEL_LOC = {
-  barcelona: "Barcelona", nice: "Nice", split: "Split", mallorca: "Palma de Mallorca",
-  athens: "Athens", lisbon: "Lisbon", seville: "Seville", malta: "Malta", rome: "Rome",
-  cyprus: "Paphos", catania: "Catania", tenerife: "Tenerife", madeira: "Funchal",
-  malaga: "Malaga", alps: "Innsbruck",
-};
-Object.keys(PLACES).forEach((k) => { PLACES[k].hotelLoc = HOTEL_LOC[k]; });
-
-const TP_TOKEN = "6fed067e5436be71b702861a2cdde247"; // Travelpayouts data token (read-only prices)
-const priceCache = new Map();
-
-function formatKr(n) {
-  return `${Math.round(n).toLocaleString("da-DK")} kr`;
-}
-
-/* Cheapest hotel price for a city + date range, via Hotellook's browser-safe
-   cache endpoint. Returns a number (total for the stay, DKK) or null. */
-async function fetchHotelPrice(loc, checkIn, checkOut) {
-  const key = `${loc}|${checkIn}|${checkOut}`;
-  if (priceCache.has(key)) return priceCache.get(key);
-  const url =
-    `https://engine.hotellook.com/api/v2/cache.json?location=${encodeURIComponent(loc)}` +
-    `&checkIn=${checkIn}&checkOut=${checkOut}&currency=dkk&limit=1&token=${TP_TOKEN}`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    const price = Array.isArray(data) && data.length ? data[0].priceFrom : null;
-    priceCache.set(key, price);
-    return price;
-  } catch (e) {
-    priceCache.set(key, null);
-    return null;
-  }
-}
-
-/* Fill in any hotel-price placeholders currently in the DOM. */
-function hydrateTripPrices() {
-  document.querySelectorAll(".trip-price[data-loc]").forEach(async (el) => {
-    if (el.dataset.done) return;
-    el.dataset.done = "1";
-    const price = await fetchHotelPrice(el.dataset.loc, el.dataset.cin, el.dataset.cout);
-    if (price) el.textContent = `Hotel fra ${formatKr(price)}`;
-    else el.remove(); // no data — just keep the buttons
-  });
-}
-
 /* Pick three good-weather European destinations for the month a break falls in.
    Winter blends two warm spots with one ski destination. */
 function pickDestinations(month) {
@@ -392,18 +345,12 @@ function renderSuggestions() {
       `;
     })
     .join("");
-
-  hydrateTripPrices(); // fetch live hotel prices for any selected suggestion
 }
 
 /* Travel options shown inside a selected suggestion, with hotel + flight
    links pre-filled with that suggestion's dates. */
 function renderTrips(s) {
   const period = { start: s.startDate, end: s.endDate };
-  const checkIn = isoDate(period.start);
-  const checkout = new Date(period.end);
-  checkout.setDate(checkout.getDate() + 1);
-  const checkOut = isoDate(checkout);
   const cards = pickDestinations(s.startDate.getMonth()).map((d) => {
     const fly = d.iata
       ? `<a class="trip-fly" href="${momondoFlightUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
@@ -414,7 +361,6 @@ function renderTrips(s) {
         <div class="trip-ico" style="background:${d.grad}">${d.emoji}</div>
         <div class="trip-name">${d.name}</div>
         <div class="trip-meta">${d.meta}</div>
-        <div class="trip-price" data-loc="${d.hotelLoc}" data-cin="${checkIn}" data-cout="${checkOut}">Henter pris…</div>
         <div class="trip-actions">${fly}${hotel}</div>
       </div>`;
   }).join("");
