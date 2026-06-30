@@ -8,6 +8,7 @@ const state = {
   selected: new Set(), // suggestion keys
   manualDays: new Set(), // user-picked individual vacation day keys
   showWholeYear: false,
+  showAllPeriods: false, // also show plain weeks (non-bridge)
   view: "plan",
 };
 
@@ -29,6 +30,7 @@ function cacheEls() {
   els.clearFixedBtn = $("clear-fixed-period");
   els.fixedPeriodResult = $("fixed-period-result");
   els.showWholeYear = $("show-whole-year");
+  els.showAllPeriods = $("show-all-periods");
   els.suggestionsList = $("suggestions-list");
   els.calendarGrid = $("calendar-grid");
   els.savedPlansList = $("saved-plans-list");
@@ -103,9 +105,30 @@ function suggestionKey(s) {
 
 /* ---------- core data assembly ---------- */
 
+/* A plain week off (5 vacation days → 9 days off) is exactly 1.8 days off per
+   vacation day. A real bridge day must beat that — i.e. a holiday is doing the
+   work. Below we keep only those, and drop overlapping lesser-value ones so the
+   list shows the single best option around each holiday. */
+const PLAIN_WEEK_RATIO = 1.8;
+
+function curateBridges(bridges) {
+  const good = bridges
+    .filter((s) => s.ratio > PLAIN_WEEK_RATIO + 1e-9)
+    .sort((a, b) => b.ratio - a.ratio || b.daysOff - a.daysOff);
+  const picked = [];
+  for (const s of good) {
+    const overlaps = picked.some(
+      (p) => !(s.endIndex < p.startIndex || s.startIndex > p.endIndex)
+    );
+    if (!overlaps) picked.push(s);
+  }
+  return picked;
+}
+
 function getAllSuggestions() {
   const { days, suggestions } = BridgeLogic.findBridgeSuggestions(state.year);
-  let all = suggestions.map((s) => ({ ...s, key: suggestionKey(s), source: "bridge" }));
+  const bridges = suggestions.map((s) => ({ ...s, key: suggestionKey(s), source: "bridge" }));
+  let all = state.showAllPeriods ? bridges : curateBridges(bridges);
 
   if (state.fixedPeriod) {
     const analysis = BridgeLogic.analyzeFixedPeriod(
@@ -253,14 +276,22 @@ function renderSuggestions() {
     return;
   }
 
+  // the single best-value bridge among what's shown
+  const bestRatio = Math.max(
+    0,
+    ...afterBudget.filter((s) => s.source === "bridge").map((s) => s.ratio)
+  );
+
   els.suggestionsList.innerHTML = afterBudget
     .map((s) => {
       const checked = state.selected.has(s.key) ? "checked" : "";
       const tag =
         s.source === "fixed" ? "Fast periode" : s.source === "extension" ? "Forlængelse" : "Bro-dage";
+      const isBest = s.source === "bridge" && s.ratio === bestRatio && bestRatio > 0;
       const trips = state.selected.has(s.key) ? renderTrips(s) : "";
       return `
-        <article class="suggestion-card" data-key="${s.key}">
+        <article class="suggestion-card${isBest ? " is-best" : ""}" data-key="${s.key}">
+          ${isBest ? `<div class="best-badge">⭐ Bedste for dine feriedage</div>` : ""}
           <div class="suggestion-top">
             <label class="suggestion-checkbox">
               <input type="checkbox" data-select-key="${s.key}" ${checked} />
@@ -517,6 +548,12 @@ function bindEvents() {
   els.showWholeYear.addEventListener("change", () => {
     state.showWholeYear = els.showWholeYear.checked;
     renderSuggestions();
+  });
+
+  els.showAllPeriods.addEventListener("change", () => {
+    state.showAllPeriods = els.showAllPeriods.checked;
+    renderSuggestions();
+    renderCalendar();
   });
 
   els.suggestionsList.addEventListener("change", (e) => {

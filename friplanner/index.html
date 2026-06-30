@@ -96,10 +96,16 @@
       <div class="card fx-reveal suggestions-card">
         <div class="suggestions-header">
           <h2>Forslag til bro-dage</h2>
-          <label class="toggle-row">
-            <input type="checkbox" id="show-whole-year" />
-            <span>Vis hele året</span>
-          </label>
+          <div class="toggle-group">
+            <label class="toggle-row">
+              <input type="checkbox" id="show-whole-year" />
+              <span>Vis hele året</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" id="show-all-periods" />
+              <span>Vis også almindelige uger</span>
+            </label>
+          </div>
         </div>
         <p class="hint">Vælg de forslag du vil bruge — intet er valgt automatisk.</p>
         <div id="suggestions-list" class="suggestions-list"></div>
