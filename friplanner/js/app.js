@@ -70,6 +70,11 @@ const PLACES = {
   madeira:   { name: "Madeira", query: "Funchal, Madeira", iata: "FNC", emoji: "🌺", meta: "Forår hele året", grad: "linear-gradient(135deg,#5BD0A0,#2AA0B0)" },
   malaga:    { name: "Malaga", query: "Malaga, Spanien", iata: "AGP", emoji: "🌞", meta: "Costa del Sol", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
   alps:      { name: "Alperne", query: "Innsbruck, Østrig", iata: "INN", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#9FD0F0,#3E6FB0)" },
+  // long-haul winter sun
+  phuket:    { name: "Thailand (Phuket)", query: "Phuket, Thailand", iata: "HKT", emoji: "🏝️", meta: "Tropevarme & strande", grad: "linear-gradient(135deg,#3FC9A0,#2A9CC0)" },
+  dubai:     { name: "Dubai", query: "Dubai, UAE", iata: "DXB", emoji: "🌇", meta: "Sol & storby", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
+  hurghada:  { name: "Hurghada", query: "Hurghada, Egypten", iata: "HRG", emoji: "🐠", meta: "Rødehavet & sol", grad: "linear-gradient(135deg,#46C2C9,#1E7E9E)" },
+  capeverde: { name: "Kap Verde", query: "Sal, Kap Verde", iata: "SID", emoji: "🌊", meta: "Atlantisk ø-sol", grad: "linear-gradient(135deg,#5BD0A0,#2AA0B0)" },
 };
 
 const SEASON_POOLS = {
@@ -77,15 +82,17 @@ const SEASON_POOLS = {
   spring: ["lisbon", "seville", "malta", "barcelona", "rome"],     // mar–may
   autumn: ["malta", "cyprus", "malaga", "catania", "tenerife"],    // sep–oct
 };
-const WINTER_WARM = ["tenerife", "madeira", "malaga", "cyprus"];   // nov–feb
+const WINTER_EXOTIC = ["phuket", "dubai", "hurghada", "capeverde"]; // long-haul sun
+const WINTER_NEAR = ["tenerife", "madeira", "malaga", "cyprus"];    // close & warm
 
-/* Pick three good-weather European destinations for the month a break falls in.
-   Winter blends two warm spots with one ski destination. */
+/* Pick three good-weather destinations for the month a break falls in. Winter
+   shows one long-haul exotic + one close warm spot + skiing in the Alps. */
 function pickDestinations(month) {
   const rot = (arr, n) => arr.map((_, i) => arr[(n + i) % arr.length]);
   if ([10, 11, 0, 1].includes(month)) {
-    const warm = rot(WINTER_WARM, month).slice(0, 2).map((k) => PLACES[k]);
-    return [...warm, PLACES.alps];
+    const exotic = PLACES[rot(WINTER_EXOTIC, month)[0]];
+    const near = PLACES[rot(WINTER_NEAR, month)[0]];
+    return [exotic, near, PLACES.alps];
   }
   let pool;
   if ([4, 5, 6, 7].includes(month)) pool = SEASON_POOLS.summer;
@@ -103,12 +110,14 @@ const HOTEL_LOC = {
   athens: "Athens", lisbon: "Lisbon", seville: "Seville", malta: "Malta", rome: "Rome",
   cyprus: "Paphos", catania: "Catania", tenerife: "Tenerife", madeira: "Funchal",
   malaga: "Malaga", alps: "Innsbruck",
+  phuket: "Phuket", dubai: "Dubai", hurghada: "Hurghada", capeverde: "Sal",
 };
 // ISO country codes for flag images
 const COUNTRY = {
   barcelona: "es", nice: "fr", split: "hr", mallorca: "es", athens: "gr",
   lisbon: "pt", seville: "es", malta: "mt", rome: "it", cyprus: "cy",
   catania: "it", tenerife: "es", madeira: "pt", malaga: "es", alps: "at",
+  phuket: "th", dubai: "ae", hurghada: "eg", capeverde: "cv",
 };
 Object.keys(PLACES).forEach((k) => {
   PLACES[k].hotelLoc = HOTEL_LOC[k];
