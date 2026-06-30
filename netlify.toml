@@ -1,0 +1,10 @@
+# Friplanner is a static PWA (no build step). Serve the friplanner/ folder.
+[build]
+  publish = "friplanner"
+  command = ""
+
+# Cache the service worker for no time so updates roll out immediately.
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "no-cache"
