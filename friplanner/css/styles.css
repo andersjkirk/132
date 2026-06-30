@@ -144,19 +144,20 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .suggestion-metrics { display: flex; gap: 14px; margin-top: 7px; font-size: 0.85rem; color: var(--ink-soft); flex-wrap: wrap; align-items: center; }
 .ratio-pill { background: linear-gradient(135deg, var(--sun), var(--coral)); color: #fff; border-radius: 100px; padding: 3px 12px; font-weight: 800; font-size: 0.8rem; display: inline-block; box-shadow: 0 4px 12px -4px rgba(255,126,95,0.5); }
 
-/* trips revealed inside a checked suggestion */
+/* trips revealed inside a checked suggestion — three cards left-to-right */
 .trips { margin-top: 14px; border-top: 1px dashed rgba(30,139,82,0.35); padding-top: 14px; animation: fadeSlideUp 0.3s ease backwards; }
 .trips-title { font-size: 0.9rem; font-weight: 700; color: #1B3A48; margin-bottom: 10px; }
-.trip { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
-.trip-ico { width: 46px; height: 46px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex: none; }
-.trip-who { flex: 1; min-width: 0; }
+.trips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.trip { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.trip-ico { width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 4px; }
 .trip-name { font-family: "Fraunces", serif; font-weight: 700; font-size: 1rem; }
-.trip-meta { font-size: 0.74rem; color: var(--ink-soft); }
-.trip-actions { display: flex; gap: 6px; flex: none; }
-.trip-actions a { text-decoration: none; font-size: 0.74rem; font-weight: 700; padding: 8px 12px; border-radius: 10px; white-space: nowrap; transition: transform 0.15s ease, filter 0.15s ease; }
+.trip-meta { font-size: 0.74rem; color: var(--ink-soft); min-height: 2em; }
+.trip-actions { display: flex; gap: 6px; width: 100%; margin-top: 6px; }
+.trip-actions a { flex: 1; text-align: center; text-decoration: none; font-size: 0.74rem; font-weight: 700; padding: 8px 6px; border-radius: 10px; white-space: nowrap; transition: transform 0.15s ease, filter 0.15s ease; }
 .trip-actions a:hover { transform: translateY(-1px); }
 .trip-hotel { background: linear-gradient(135deg, var(--sea), var(--sea-deep)); color: #fff; }
 .trip-fly { background: var(--accent-weekend-soft); color: var(--sea-deep); }
+@media (max-width: 560px) { .trips-grid { grid-template-columns: 1fr; } }
 
 .suggestions-list .suggestion-card:nth-child(1) { animation-delay: 0.02s; }
 .suggestions-list .suggestion-card:nth-child(2) { animation-delay: 0.06s; }
@@ -214,9 +215,20 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .nav-btn.is-active .nav-icon { transform: scale(1.15) translateY(-1px); }
 .nav-btn:active { transform: scale(0.9); }
 
-/* ---------- responsive: wider year grid ---------- */
-@media (min-width: 680px) { .calendar-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1000px) {
+/* ---------- suggestions + calendar side by side ---------- */
+.bridge-row { display: flex; flex-direction: column; gap: 18px; }
+.bridge-left { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.calendar-col { min-width: 0; }
+
+/* tablet: calendar spans full width below, 3 months per row */
+@media (min-width: 560px) and (max-width: 1023px) {
+  .calendar-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* desktop: suggestions left, full-year calendar to the right */
+@media (min-width: 1024px) {
   .brand-headline { font-size: 2.5rem; }
-  .calendar-grid { grid-template-columns: repeat(4, 1fr); }
+  .bridge-row { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 24px; align-items: start; }
+  .calendar-col .calendar-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .calendar-col .cal-day { font-size: 0.78rem; }
 }

@@ -92,7 +92,10 @@
         <button type="button" class="btn-secondary" id="clear-fixed-period">Ryd periode</button>
         <div id="fixed-period-result"></div>
       </div>
+    </section>
 
+    <div class="bridge-row">
+      <div class="bridge-left">
       <div class="card fx-reveal suggestions-card">
         <div class="suggestions-header">
           <h2>Forslag til bro-dage</h2>
@@ -110,35 +113,34 @@
         <p class="hint">Vælg de forslag du vil bruge — intet er valgt automatisk.</p>
         <div id="suggestions-list" class="suggestions-list"></div>
       </div>
+      </div><!-- /bridge-left -->
 
-      <div class="card fx-reveal ad-slot" aria-label="Annonce">
-        <span class="ad-label">Annonce</span>
-        <div class="ad-placeholder">Annonceplads (ikke tilsluttet endnu)</div>
-      </div>
-
-      <div class="card fx-reveal save-plan-card">
-        <h2>Gem din plan</h2>
-        <div class="field-row">
-          <input type="text" id="plan-name-input" placeholder="Navngiv din plan, fx “Sommer 2026”" />
-          <button type="button" class="btn-primary" id="save-plan-btn">Gem</button>
+      <section class="view calendar-col" id="view-calendar" data-view="calendar">
+        <h2 class="section-title">Kalender — hele året</h2>
+        <div class="calendar-legend">
+          <span class="legend-item"><i class="legend-dot dot-weekend"></i>Weekend</span>
+          <span class="legend-item"><i class="legend-dot dot-holiday"></i>Helligdag</span>
+          <span class="legend-item"><i class="legend-dot dot-selected"></i>Valgt feriedag</span>
+          <span class="legend-item"><i class="legend-dot dot-normal"></i>Arbejdsdag</span>
         </div>
-        <p class="hint" id="save-plan-feedback"></p>
-      </div>
+        <p class="hint calendar-help">Tryk på en arbejdsdag for selv at vælge den som feriedag — tryk igen for at fjerne den.</p>
+        <div id="calendar-grid" class="calendar-grid"></div>
+      </section>
+    </div><!-- /bridge-row -->
 
-    </section>
+    <div class="card fx-reveal ad-slot" aria-label="Annonce">
+      <span class="ad-label">Annonce</span>
+      <div class="ad-placeholder">Annonceplads (ikke tilsluttet endnu)</div>
+    </div>
 
-    <!-- CALENDAR VIEW -->
-    <section class="view" id="view-calendar" data-view="calendar">
-      <h2 class="section-title">Kalender — hele året</h2>
-      <div class="calendar-legend">
-        <span class="legend-item"><i class="legend-dot dot-weekend"></i>Weekend</span>
-        <span class="legend-item"><i class="legend-dot dot-holiday"></i>Helligdag</span>
-        <span class="legend-item"><i class="legend-dot dot-selected"></i>Valgt feriedag</span>
-        <span class="legend-item"><i class="legend-dot dot-normal"></i>Arbejdsdag</span>
+    <div class="card fx-reveal save-plan-card">
+      <h2>Gem din plan</h2>
+      <div class="field-row">
+        <input type="text" id="plan-name-input" placeholder="Navngiv din plan, fx “Sommer 2026”" />
+        <button type="button" class="btn-primary" id="save-plan-btn">Gem</button>
       </div>
-      <p class="hint calendar-help">Tryk på en arbejdsdag for selv at vælge den som feriedag — tryk igen for at fjerne den.</p>
-      <div id="calendar-grid" class="calendar-grid"></div>
-    </section>
+      <p class="hint" id="save-plan-feedback"></p>
+    </div>
 
     <!-- SAVED VIEW -->
     <section class="view" id="view-saved" data-view="saved">

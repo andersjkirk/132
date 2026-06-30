@@ -42,16 +42,47 @@ function cacheEls() {
 /* ---------- destinations ---------- */
 
 const FLIGHT_ORIGIN = "Copenhagen";
-const DESTINATIONS = [
-  { name: "Barcelona", query: "Barcelona, Spanien", city: "Barcelona", emoji: "🏖️", meta: "Sol, strand & tapas", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
-  { name: "Rom", query: "Rom, Italien", city: "Rome", emoji: "🏛️", meta: "Historie & is", grad: "linear-gradient(135deg,#F6A56B,#C9784B)" },
-  { name: "Alperne", query: "Innsbruck, Østrig", city: "Innsbruck", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#7FB8E8,#3E6FB0)" },
-  { name: "Lissabon", query: "Lissabon, Portugal", city: "Lisbon", emoji: "🚋", meta: "Pastel & kyst", grad: "linear-gradient(135deg,#FFD37A,#F58C5A)" },
-  { name: "Mallorca", query: "Mallorca, Spanien", city: "Palma de Mallorca", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
-  { name: "København", query: "København, Danmark", city: null, emoji: "🚲", meta: "Hygge hjemme", grad: "linear-gradient(135deg,#67C7D8,#2A8FB0)" },
-];
-// shown inside each selected suggestion
-const FEATURED_DESTINATIONS = [DESTINATIONS[0], DESTINATIONS[2], DESTINATIONS[3]];
+
+/* Catalogue of European destinations with the months their weather is good. */
+const PLACES = {
+  barcelona: { name: "Barcelona", query: "Barcelona, Spanien", city: "Barcelona", emoji: "🏖️", meta: "Strand & tapas", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
+  nice:      { name: "Nice", query: "Nice, Frankrig", city: "Nice", emoji: "🌴", meta: "Den franske riviera", grad: "linear-gradient(135deg,#FFB36B,#FF7E5F)" },
+  split:     { name: "Split", query: "Split, Kroatien", city: "Split", emoji: "⛵", meta: "Adriaterhavet", grad: "linear-gradient(135deg,#46C2C9,#2A8FB0)" },
+  mallorca:  { name: "Mallorca", query: "Mallorca, Spanien", city: "Palma de Mallorca", emoji: "🌊", meta: "Bugter & sol", grad: "linear-gradient(135deg,#56C8D8,#2A9CC0)" },
+  athens:    { name: "Athen", query: "Athen, Grækenland", city: "Athens", emoji: "🏛️", meta: "Sol & historie", grad: "linear-gradient(135deg,#7FC4E8,#3E8FB0)" },
+  lisbon:    { name: "Lissabon", query: "Lissabon, Portugal", city: "Lisbon", emoji: "🚋", meta: "Pastel & kyst", grad: "linear-gradient(135deg,#FFD37A,#F58C5A)" },
+  seville:   { name: "Sevilla", query: "Sevilla, Spanien", city: "Seville", emoji: "☀️", meta: "Varmt & maurisk", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
+  malta:     { name: "Malta", query: "Malta", city: "Malta", emoji: "🐠", meta: "Øsol i Middelhavet", grad: "linear-gradient(135deg,#5BC8C2,#2A9CC0)" },
+  rome:      { name: "Rom", query: "Rom, Italien", city: "Rome", emoji: "🏛️", meta: "Historie & is", grad: "linear-gradient(135deg,#F6A56B,#C9784B)" },
+  cyprus:    { name: "Cypern", query: "Paphos, Cypern", city: "Paphos", emoji: "🏝️", meta: "Lun kyst", grad: "linear-gradient(135deg,#FFB86B,#FF7E8A)" },
+  catania:   { name: "Sicilien", query: "Catania, Italien", city: "Catania", emoji: "🍋", meta: "Sol & vulkan", grad: "linear-gradient(135deg,#FFD46B,#F58C4A)" },
+  tenerife:  { name: "Tenerife", query: "Tenerife, Spanien", city: "Tenerife", emoji: "🌋", meta: "Evig sommer", grad: "linear-gradient(135deg,#FF9A56,#FF6A88)" },
+  madeira:   { name: "Madeira", query: "Funchal, Madeira", city: "Funchal", emoji: "🌺", meta: "Forår hele året", grad: "linear-gradient(135deg,#5BD0A0,#2AA0B0)" },
+  malaga:    { name: "Malaga", query: "Malaga, Spanien", city: "Malaga", emoji: "🌞", meta: "Costa del Sol", grad: "linear-gradient(135deg,#FFC65C,#FF8A4D)" },
+  alps:      { name: "Alperne", query: "Innsbruck, Østrig", city: "Innsbruck", emoji: "⛷️", meta: "Ski & sne", grad: "linear-gradient(135deg,#9FD0F0,#3E6FB0)" },
+};
+
+const SEASON_POOLS = {
+  summer: ["barcelona", "nice", "split", "mallorca", "athens"],   // jun–aug
+  spring: ["lisbon", "seville", "malta", "barcelona", "rome"],     // mar–may
+  autumn: ["malta", "cyprus", "malaga", "catania", "tenerife"],    // sep–oct
+};
+const WINTER_WARM = ["tenerife", "madeira", "malaga", "cyprus"];   // nov–feb
+
+/* Pick three good-weather European destinations for the month a break falls in.
+   Winter blends two warm spots with one ski destination. */
+function pickDestinations(month) {
+  const rot = (arr, n) => arr.map((_, i) => arr[(n + i) % arr.length]);
+  if ([10, 11, 0, 1].includes(month)) {
+    const warm = rot(WINTER_WARM, month).slice(0, 2).map((k) => PLACES[k]);
+    return [...warm, PLACES.alps];
+  }
+  let pool;
+  if ([4, 5, 6, 7].includes(month)) pool = SEASON_POOLS.summer;
+  else if ([2, 3].includes(month)) pool = SEASON_POOLS.spring;
+  else pool = SEASON_POOLS.autumn; // 8, 9
+  return rot(pool, month).slice(0, 3).map((k) => PLACES[k]);
+}
 
 function selectedPeriod() {
   const { days, all } = getAllSuggestions();
@@ -317,7 +348,7 @@ function renderSuggestions() {
    links pre-filled with that suggestion's dates. */
 function renderTrips(s) {
   const period = { start: s.startDate, end: s.endDate };
-  const rows = FEATURED_DESTINATIONS.map((d) => {
+  const cards = pickDestinations(s.startDate.getMonth()).map((d) => {
     const hotel = `<a class="trip-hotel" href="${bookingUrl(d.query, period)}" target="_blank" rel="noopener">🏨 Hotel</a>`;
     const fly = d.city
       ? `<a class="trip-fly" href="${flightsUrl(d.city, period)}" target="_blank" rel="noopener">✈️ Fly</a>`
@@ -325,14 +356,12 @@ function renderTrips(s) {
     return `
       <div class="trip">
         <div class="trip-ico" style="background:${d.grad}">${d.emoji}</div>
-        <div class="trip-who">
-          <div class="trip-name">${d.name}</div>
-          <div class="trip-meta">Fly + hotel i dine datoer — se priser</div>
-        </div>
+        <div class="trip-name">${d.name}</div>
+        <div class="trip-meta">${d.meta}</div>
         <div class="trip-actions">${hotel}${fly}</div>
       </div>`;
   }).join("");
-  return `<div class="trips"><div class="trips-title">✈️ Rejs i denne periode</div>${rows}</div>`;
+  return `<div class="trips"><div class="trips-title">✈️ Gode rejsemål i denne periode</div><div class="trips-grid">${cards}</div></div>`;
 }
 
 function renderFixedPeriodResult() {
