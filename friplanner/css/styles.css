@@ -121,6 +121,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .budget-number.is-bumped { transform: scale(1.22); }
 .budget-stat-accent .budget-number { color: var(--green-deep); }
 .budget-label { display: block; font-size: 0.72rem; color: var(--ink-soft); margin-top: 2px; font-weight: 600; }
+.budget-remaining { text-align: center; margin: 12px 0 0; font-size: 0.92rem; font-weight: 700; color: var(--green-deep); }
+.budget-remaining.is-warn { color: var(--sea-deep); }
+.budget-remaining.is-over { color: var(--coral); }
 
 /* ---------- suggestions ---------- */
 .suggestions-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
@@ -214,9 +217,14 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .saved-plans-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
 .saved-plan-row { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px 16px; background: var(--glass-strong); flex-wrap: wrap; gap: 8px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .saved-plan-row:hover { transform: translateY(-2px); box-shadow: 0 8px 22px -10px rgba(40,70,95,0.3); }
+.saved-plan-row { align-items: flex-start; }
+.saved-plan-info { min-width: 0; }
 .saved-plan-name { font-weight: 700; }
 .saved-plan-meta { font-size: 0.8rem; color: var(--ink-soft); margin-top: 2px; }
-.saved-plan-actions { display: flex; gap: 8px; }
+.saved-plan-dates { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.saved-plan-dates li { font-size: 0.85rem; font-weight: 600; color: var(--green-deep); }
+.saved-plan-dates-empty { font-size: 0.82rem; color: var(--ink-soft); margin-top: 6px; }
+.saved-plan-actions { display: flex; gap: 8px; flex: none; }
 
 /* ---------- full-year calendar overview ---------- */
 .calendar-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 14px 18px; background: var(--glass); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border: 1px solid var(--glass-border); border-radius: var(--radius); box-shadow: var(--shadow-soft); }

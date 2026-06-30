@@ -26,6 +26,7 @@ function cacheEls() {
   els.statUsed = $("stat-used");
   els.statOff = $("stat-off");
   els.statRatio = $("stat-ratio");
+  els.budgetRemaining = $("budget-remaining");
   els.fixedStart = $("fixed-start");
   els.fixedEnd = $("fixed-end");
   els.clearFixedBtn = $("clear-fixed-period");
@@ -354,6 +355,21 @@ function renderStats(days, all) {
     els.statOff.textContent = off;
     els.statRatio.textContent = used > 0 ? ratio.toFixed(1) : "–";
   }
+
+  // remaining-days budget line + warning
+  const budget = effectiveBudget();
+  const remaining = budget - used;
+  const el = els.budgetRemaining;
+  el.classList.remove("is-warn", "is-over");
+  if (remaining < 0) {
+    el.classList.add("is-over");
+    el.textContent = `⚠️ Du har valgt ${used} feriedage — det er ${-remaining} mere end dine ${budget}.`;
+  } else if (remaining === 0) {
+    el.classList.add("is-warn");
+    el.textContent = `Du har brugt alle ${budget} feriedage.`;
+  } else {
+    el.textContent = `${used} af ${budget} feriedage brugt · ${remaining} tilbage`;
+  }
 }
 
 function renderSuggestions() {
@@ -540,8 +556,19 @@ function jumpToSuggestion(key) {
 
 /* ---------- saved plans ---------- */
 
+// turn a suggestion key "YYYY-MM-DD_YYYY-MM-DD" into a readable date range
+function keyToRangeText(key) {
+  const parse = (s) => {
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
+  const [a, b] = key.split("_");
+  const start = parse(a), end = parse(b);
+  return formatRange({ start, end });
+}
+
 function renderSavedPlans() {
-  const plans = Storage.loadPlans().filter((p) => true);
+  const plans = Storage.loadPlans();
   if (plans.length === 0) {
     els.savedPlansList.innerHTML = `<p class="hint">Du har ikke gemt nogen planer endnu.</p>`;
     return;
@@ -549,20 +576,25 @@ function renderSavedPlans() {
   els.savedPlansList.innerHTML = plans
     .slice()
     .reverse()
-    .map(
-      (p) => `
+    .map((p) => {
+      const keys = p.selectedKeys || [];
+      const dates = keys.length
+        ? `<ul class="saved-plan-dates">${keys.map((k) => `<li>📅 ${keyToRangeText(k)}</li>`).join("")}</ul>`
+        : `<div class="saved-plan-dates-empty">Ingen forslag valgt i denne plan.</div>`;
+      return `
       <div class="saved-plan-row" data-plan-id="${p.id}">
-        <div>
+        <div class="saved-plan-info">
           <div class="saved-plan-name">${escapeHtml(p.name)}</div>
-          <div class="saved-plan-meta">${p.year} · ${p.vacationDays} feriedage · ${p.selectedKeys.length} valgte forslag</div>
+          <div class="saved-plan-meta">${p.year} · ${p.vacationDays} feriedage til rådighed</div>
+          ${dates}
         </div>
         <div class="saved-plan-actions">
           <button type="button" class="btn-secondary" data-load-plan="${p.id}">Indlæs</button>
           <button type="button" class="btn-danger" data-delete-plan="${p.id}">Slet</button>
         </div>
       </div>
-    `
-    )
+    `;
+    })
     .join("");
 }
 
