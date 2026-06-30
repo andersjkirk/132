@@ -104,7 +104,16 @@ const HOTEL_LOC = {
   cyprus: "Paphos", catania: "Catania", tenerife: "Tenerife", madeira: "Funchal",
   malaga: "Malaga", alps: "Innsbruck",
 };
-Object.keys(PLACES).forEach((k) => { PLACES[k].hotelLoc = HOTEL_LOC[k]; });
+// ISO country codes for flag images
+const COUNTRY = {
+  barcelona: "es", nice: "fr", split: "hr", mallorca: "es", athens: "gr",
+  lisbon: "pt", seville: "es", malta: "mt", rome: "it", cyprus: "cy",
+  catania: "it", tenerife: "es", madeira: "pt", malaga: "es", alps: "at",
+};
+Object.keys(PLACES).forEach((k) => {
+  PLACES[k].hotelLoc = HOTEL_LOC[k];
+  PLACES[k].cc = COUNTRY[k];
+});
 
 const priceCache = new Map();
 function formatKr(n) { return `${Math.round(n).toLocaleString("da-DK")} kr`; }
@@ -443,7 +452,7 @@ function renderTrips(s) {
       : "";
     return `
       <div class="trip">
-        <div class="trip-ico" style="background:${d.grad}">${d.emoji}</div>
+        <div class="trip-ico"><img class="trip-flag" src="https://flagcdn.com/${d.cc}.svg" alt="" loading="lazy" /></div>
         <div class="trip-name">${d.name}</div>
         <div class="trip-meta">${d.meta}</div>
         ${priceEl}
