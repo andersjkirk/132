@@ -141,12 +141,11 @@ async function detectOriginAirport() {
   } catch (e) { /* keep default CPH */ }
 }
 
-/* Kiwi.com round-trip search in Danish, prices in DKK. Monetised by the Drive
-   script. Pre-fills origin → destination with the dates. */
-function kiwiUrl(dest, period) {
+/* Momondo round-trip flight search (Danish site, pre-fills route + dates). */
+function momondoUrl(dest, period) {
   const home = new Date(period.end); home.setDate(home.getDate() + 1);
-  return `https://www.kiwi.com/dk/search/results/${state.originAirport}/${dest}` +
-    `/${isoDate(period.start)}/${isoDate(home)}?currency=dkk`;
+  return `https://www.momondo.dk/flight-search/${state.originAirport}-${dest}` +
+    `/${isoDate(period.start)}/${isoDate(home)}?sort=price_a`;
 }
 
 /* Booking.com hotel search in Danish, prices in DKK, dates pre-filled.
@@ -461,10 +460,11 @@ function renderTrips(s) {
   const checkOut = isoDate(back);
   const seed = s.startDate.getMonth() * 31 + s.startDate.getDate(); // varies per suggestion
   const cards = pickDestinations(s.startDate.getMonth(), seed).map((d) => {
+    const t = `${d.iata || d.cc}-${checkIn}`; // unique tab per destination+dates
     const fly = d.iata
-      ? `<a class="trip-fly" href="${kiwiUrl(d.iata, period)}" target="_blank" rel="noopener">✈️ Se fly</a>`
+      ? `<a class="trip-fly" href="${momondoUrl(d.iata, period)}" target="fly-${t}" rel="noopener">✈️ Se fly</a>`
       : "";
-    const hotel = `<a class="trip-hotel" href="${bookingUrl(d.hotelLoc, period)}" target="_blank" rel="noopener">🏨 Se hotel</a>`;
+    const hotel = `<a class="trip-hotel" href="${bookingUrl(d.hotelLoc, period)}" target="hotel-${t}" rel="noopener">🏨 Se hotel</a>`;
     const priceEl = d.iata
       ? `<div class="trip-price" data-dest="${d.iata}" data-loc="${d.hotelLoc}" data-cin="${checkIn}" data-cout="${checkOut}">Henter priser…</div>`
       : "";

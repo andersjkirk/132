@@ -151,8 +151,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* trips revealed inside a checked suggestion — three cards left-to-right */
 .trips { margin-top: 14px; border-top: 1px dashed rgba(30,139,82,0.35); padding-top: 14px; animation: fadeSlideUp 0.3s ease backwards; }
 .trips-title { font-size: 0.9rem; font-weight: 700; color: #1B3A48; margin-bottom: 10px; }
-.trips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.trip { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.trips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.trip { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; min-width: 0; }
 .trip-ico { width: 50px; height: 36px; border-radius: 8px; overflow: hidden; margin-bottom: 6px; box-shadow: 0 2px 6px -2px rgba(40,70,95,0.3); }
 .trip-flag { width: 100%; height: 100%; object-fit: cover; display: block; }
 .trip-name { font-family: "Fraunces", serif; font-weight: 700; font-size: 1rem; }
@@ -190,8 +190,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .boss-title { font-weight: 700; margin-bottom: 10px; }
 .boss-row { display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; margin-bottom: 0; }
 .boss-row input { flex: 1; min-width: 220px; }
-.trip-actions { display: flex; gap: 6px; width: 100%; margin-top: 6px; }
-.trip-actions a { flex: 1; text-align: center; text-decoration: none; font-size: 0.74rem; font-weight: 700; padding: 8px 6px; border-radius: 10px; white-space: nowrap; transition: transform 0.15s ease, filter 0.15s ease; }
+.trip-actions { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; margin-top: 6px; }
+.trip-actions a { flex: 1 1 90px; text-align: center; text-decoration: none; font-size: 0.74rem; font-weight: 700; padding: 8px 6px; border-radius: 10px; white-space: nowrap; transition: transform 0.15s ease, filter 0.15s ease; }
 .trip-actions a:hover { transform: translateY(-1px); }
 .trip-fly { background: linear-gradient(135deg, var(--sea), var(--sea-deep)); color: #fff; }
 .trip-hotel { background: var(--accent-weekend-soft); color: var(--sea-deep); }
